@@ -1,20 +1,32 @@
 module.exports = {
-	name: 'users',
-	description: 'Show what servers the bot is connected to.',
+    name: 'users',
+    description: 'Show what servers the bot is connected to.',
     onlyAdmins: true,
-    guildOnly: true,
     args: 0,
     usage: '',
 
-	execute(message) {
-        // find
-		const embed = new this.Discord.MessageEmbed();
-        embed.setTitle('Current users registered in '+message.guild.name);
-        embed.addField('1: Kaptajnen[KaptajnDahl]', '5 ships', true);
-        embed.addField('2: ImpKeeper', '82 ships', true);
-        embed.addField('3: [ᑌᖴᗪ] ᔕᑭᗩᑕEY', '28 ships', true);
-        embed.addField('4: Scottio', '19 ships', true);
-        embed.setFooter('Total ships in org fleet: '+87);
-        message.author.send(embed);
-	},
+    execute(message, args) {
+        let guild = args.pop();
+        let member = args.pop();
+        let adminRole = args.pop();
+        fetch('http://127.0.0.1:3000/users/' + guild.id)
+            .then(res => res.json())
+            .then(json => {
+                if (json.success) {
+                    const embed = new this.Discord.MessageEmbed();
+                    embed.setTitle('Current users registered in ' + guild.name);
+                    let ships = 0;
+                    json.users.forEach((user, i) => {
+                        embed.addField((i + 1) + ': ' + user.settings.userName, user.numberOfShips + ' ships', true);
+                        ships += user.numberOfShips;
+                    });
+                    embed.setFooter('Total ships in org fleet: ' + ships);
+                    message.author.send(embed);
+                }
+            })
+            .catch(err => {
+                console.log('Error occured', err)
+                message.reply('sorry, but the deregistration failed to complete.');
+            });
+    },
 };

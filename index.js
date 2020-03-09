@@ -1,7 +1,7 @@
-const Discord = require('discord.js');
-const client = new Discord.Client();
-
-const fs = require('fs');
+global.Discord = require('discord.js');
+global.client = new Discord.Client();
+global.fetch = require('node-fetch');
+global.fs = require('fs');
 
 // Load commands from files in commands
 client.commands = new Discord.Collection();
@@ -9,8 +9,8 @@ const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('
 for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
     command.Discord = Discord;
-	command.client = client;
-	client.commands.set(command.name, command);
+    command.client = client;
+    client.commands.set(command.name, command);
 }
 
 // Load configuration
@@ -29,19 +29,20 @@ client.on('message', (message) => {
     if (message.channel.type === 'text') {
         args.shift();
     }
+    if (!args.length) return message.reply(`I hear you, but what do you want?`);
     const commandName = args.shift().toLowerCase();
-	const command = client.commands.get(commandName)
-		|| client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+    const command = client.commands.get(commandName)
+        || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 
     if (!command) return message.reply(`I am sorry but I do not understand you!`);
     command.commandName = commandName;
 
     if (command.dmOnly && message.channel.type === 'text') {
-		return message.reply(`I am sorry but I can only do that in DM, not in a server.`);
-	}
+        return message.reply(`I am sorry but I can only do that in DM, not in a server.`);
+    }
     if (command.guildOnly && message.channel.type !== 'text') {
-		return message.reply(`I am sorry but I can only do that in a server, not in DM.`);
-	}
+        return message.reply(`I am sorry but I can only do that in a server, not in DM.`);
+    }
 
     if (command.onlyGuildId && (!message.guild || Number(message.guild.id) !== Number(command.onlyGuildId))) {
         return message.reply(`I am not allowed to do that here!`);
@@ -54,20 +55,51 @@ client.on('message', (message) => {
             message.authorIsAdmin = message.member.roles.cache.has(adminRole.id);
         }
     }
-    if (command.onlyAdmins && !message.authorIsAdmin) {
-        return message.reply(`you are not allowed to do that!`);
-    }
 
     if (command.args && args.length !== command.args) {
-		return message.reply(`I am sorry but I require more information!\nUsage: `+command.usage);
-	}
+        return message.reply(`I am sorry but I require more information!\nUsage: ` + command.usage);
+    }
 
-	try {
-		command.execute(message, args);
-	} catch (error) {
-		console.error(error);
-		message.reply('there was an error trying to execute that command!');
-	}
+    if (command.requireRole) {
+        fetch('http://127.0.0.1:3000/user/' + message.author.id)
+        .then(res => res.json())
+        .then(json => {
+            if (json.success) {
+                let guild = client.guilds.cache.find(g => g.id === json.user.orgId);
+                let requiredRole = guild.roles.cache.find(r => r.name === command.requireRole);
+                let member = guild.members.cache.find(u => u.id === message.author.id);
+                args.push(requiredRole);
+                args.push(member);
+                args.push(guild);
+                if (member.roles.cache.has(requiredRole.id)) {
+                    executeCommand(command, args, message);
+                }
+                else {
+                    message.reply('sorry, but you are not an admin in your organization!');
+                }
+            }
+            else {
+                console.log('users error', json);
+                message.reply('sorry but I could not get information on you.\n*Computer says: ' + json.error + '*');
+            }
+        })
+        .catch(err => {
+            console.log('Error occured', err)
+            message.reply('sorry, but the deregistration failed to complete.');
+        });
+    }
+    else {
+        executeCommand(command, args, message);
+    }
 });
+
+function executeCommand(command, args, message) {
+    try {
+        command.execute(message, args);
+    } catch (error) {
+        console.error(error);
+        message.reply('there was an error trying to execute that command!');
+    }
+}
 
 client.login(token);
