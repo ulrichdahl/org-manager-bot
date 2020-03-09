@@ -2,6 +2,7 @@ global.Discord = require('discord.js');
 global.client = new Discord.Client();
 global.fetch = require('node-fetch');
 global.fs = require('fs');
+global.request = require('./lib/requests');
 
 // Load commands from files in commands
 client.commands = new Discord.Collection();
@@ -14,7 +15,8 @@ for (const file of commandFiles) {
 }
 
 // Load configuration
-const { token } = require('./config.json');
+const { token, urlPrefix } = require('./config.json');
+request.prefix = urlPrefix;
 
 client.on('ready', () => {
     console.log('Bot is now connected!');
@@ -61,32 +63,22 @@ client.on('message', (message) => {
     }
 
     if (command.requireRole) {
-        fetch('http://127.0.0.1:3000/user/' + message.author.id)
-        .then(res => res.json())
-        .then(json => {
-            if (json.success) {
-                let guild = client.guilds.cache.find(g => g.id === json.user.orgId);
-                let requiredRole = guild.roles.cache.find(r => r.name === command.requireRole);
-                let member = guild.members.cache.find(u => u.id === message.author.id);
-                args.push(requiredRole);
-                args.push(member);
-                args.push(guild);
-                if (member.roles.cache.has(requiredRole.id)) {
+        request.get('user/' + message.author.id,
+            (json) => {
+                command.guild = client.guilds.cache.find(g => g.id === json.user.orgId);
+                command.requiredRole = command.guild.roles.cache.find(r => r.name === command.requireRole);
+                command.member = command.guild.members.cache.find(u => u.id === message.author.id);
+                if (command.member.roles.cache.has(command.requiredRole.id)) {
                     executeCommand(command, args, message);
                 }
                 else {
                     message.reply('sorry, but you are not an admin in your organization!');
                 }
-            }
-            else {
-                console.log('users error', json);
+            }, (json) => {
                 message.reply('sorry but I could not get information on you.\n*Computer says: ' + json.error + '*');
-            }
-        })
-        .catch(err => {
-            console.log('Error occured', err)
-            message.reply('sorry, but the deregistration failed to complete.');
-        });
+            }, (err) => {
+                message.reply('sorry, but the deregistration failed to complete.');
+            });
     }
     else {
         executeCommand(command, args, message);
