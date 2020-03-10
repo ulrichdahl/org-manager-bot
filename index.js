@@ -9,7 +9,6 @@ client.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
-    command.Discord = Discord;
     command.client = client;
     client.commands.set(command.name, command);
 }
@@ -37,61 +36,28 @@ client.on('message', (message) => {
         || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 
     if (!command) return message.reply(`I am sorry but I do not understand you!`);
-    command.commandName = commandName;
 
-    if (command.dmOnly && message.channel.type === 'text') {
-        return message.reply(`I am sorry but I can only do that in DM, not in a server.`);
-    }
-    if (command.guildOnly && message.channel.type !== 'text') {
-        return message.reply(`I am sorry but I can only do that in a server, not in DM.`);
-    }
-
-    if (command.onlyGuildId && (!message.guild || Number(message.guild.id) !== Number(command.onlyGuildId))) {
-        return message.reply(`I am not allowed to do that here!`);
-    }
-
-    message.authorIsAdmin = false;
-    if (message.guild) {
-        const adminRole = message.guild.roles.cache.find(r => r.name === "admin");
-        if (adminRole) {
-            message.authorIsAdmin = message.member.roles.cache.has(adminRole.id);
-        }
-    }
-
-    if (command.args && args.length !== command.args) {
-        return message.reply(`I am sorry but I require more information!\nUsage: ` + command.usage);
-    }
-
-    if (command.requireRole) {
-        request.get('user/' + message.author.id,
-            (json) => {
-                command.guild = client.guilds.cache.find(g => g.id === json.user.orgId);
-                command.requiredRole = command.guild.roles.cache.find(r => r.name === command.requireRole);
-                command.member = command.guild.members.cache.find(u => u.id === message.author.id);
-                if (command.member.roles.cache.has(command.requiredRole.id)) {
-                    executeCommand(command, args, message);
-                }
-                else {
-                    message.reply('sorry, but you are not an admin in your organization!');
-                }
-            }, (json) => {
-                message.reply('sorry but I could not get information on you.\n*Computer says: ' + json.error + '*');
-            }, (err) => {
-                message.reply('sorry, but the deregistration failed to complete.');
-            });
-    }
-    else {
-        executeCommand(command, args, message);
-    }
+    command.setNameUsed(commandName);
+    command.validate(message, args)
+        .then((success) => {
+            if (typeof success === 'object') {
+                command.member = success.member;
+                command.requiredRole = success.requiredRole;
+                command.guild = success.guild;
+                success = success.message;
+            }
+            console.log(command.usedName + ': ' + success);
+            try {
+                command.execute(message, args);
+            } catch (error) {
+                console.error(error);
+                message.reply('there was an error trying to execute that command!');
+            }
+        })
+        .catch((error) => {
+            console.log('ERROR: ' + command.usedName + ' :: ' + error);
+            message.reply(error);
+        });
 });
-
-function executeCommand(command, args, message) {
-    try {
-        command.execute(message, args);
-    } catch (error) {
-        console.error(error);
-        message.reply('there was an error trying to execute that command!');
-    }
-}
 
 client.login(token);

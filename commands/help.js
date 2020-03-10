@@ -1,7 +1,13 @@
-module.exports = {
-    name: 'help',
-    description: 'Show what the bot can do here.',
-    usage: '',
+const BaseCommand = require('./../lib/command');
+
+class Command extends BaseCommand {
+
+	constructor() {
+        super();
+		this.name = 'help';
+		this.description ='Show what the bot can do here.';
+		this.usage = '';
+	}
 
     execute(message, args) {
         const data = [];
@@ -43,3 +49,5 @@ module.exports = {
 		message.channel.send(data, { split: true });
     }
 };
+
+module.exports = new Command();

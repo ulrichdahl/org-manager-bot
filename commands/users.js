@@ -1,15 +1,20 @@
-module.exports = {
-    name: 'users',
-    description: 'Show what servers the bot is connected to.',
-    requireRole: 'admin',
-    guild: null,
-    member: null,
-    requiredRole: null,
+const Discord = require('discord.js');
+const BaseCommand = require('./../lib/command');
+const request = require('./../lib/requests');
+
+class Command extends BaseCommand {
+
+    constructor() {
+        super();
+        this.name = 'users';
+        this.description = 'Show the users of the org that are registered with fleet manager';
+        this.requireRole = 'admin';
+    }
 
     execute(message) {
         let _guild = this.guild;
         request.get('users/' + _guild.id, (json) => {
-            const embed = new this.Discord.MessageEmbed();
+            const embed = new Discord.MessageEmbed();
             embed.setTitle('Current users registered in ' + _guild.name);
             let ships = 0;
             json.users.forEach((user, i) => {
@@ -21,5 +26,7 @@ module.exports = {
         }, undefined, (err) => {
             message.reply('sorry, but the deregistration failed to complete.');
         });
-    },
+    }
 };
+
+module.exports = new Command();
