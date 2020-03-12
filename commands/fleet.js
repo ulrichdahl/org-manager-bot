@@ -11,9 +11,94 @@ class Command extends BaseCommand {
         this.usage = '';
         this.args = ['list/add/rem'];
         this.dmOnly = true;
+
+        this.conversations = {
+            add: {
+                // title: {
+                //     question: 'What is the title of the package?',
+                //     answer: 'Title',
+                //     help: 'You can copy this from your hangar of the CIG website.',
+                //     next: 'boughtPrice'
+                // },
+                // boughtPrice: {
+                //     question: 'What was the price of the package when you bought it?',
+                //     answer: 'Purchase price',
+                //     help: 'Please write the price followed by the currency like: 350 USD',
+                //     next: 'boughtDate',
+                // },
+                // boughtVat: {
+                //     question: 'What the price including VAT?',
+                //     answer: 'Incl. VAT',
+                //     choices: ['yes', 'no'],
+                //     next: 'boughtDate',
+                // },
+                // boughtDate: {
+                //     question: 'When did you buy this package?',
+                //     answer: 'Purchase date',
+                //     help: 'Please write the data in the following format: YYYY-MM-DD',
+                //     next: 'type',
+                // },
+                // type: {
+                //     question: 'What type of package is this?',
+                //     answer: 'Type',
+                //     choices: [
+                //         'Standalone ship or package',
+                //         'Game package (includes game access)',
+                //         'CCU upgraded standalone',
+                //         'CCU upgraded game package',
+                //     ],
+                //     next: 'insurance',
+                // },
+                // insurance: {
+                //     question: 'What insurance does this package come with?',
+                //     answer: 'Insurance',
+                //     choices: [
+                //         '3 months',
+                //         '6 months',
+                //         '5 years',
+                //         '10 years (IAE)',
+                //         'Life time (LTI)'
+                //     ],
+                //     next: 'shipMake'
+                // },
+                shipMake: {
+                    question: 'What manufacturer is the vehicle?',
+                    choices: './../ships.json|manufacturer',
+                    next: 'shipType'
+                },
+                shipType: {
+                    question: 'What :prevValue vehicle is it?',
+                    answer: 'Ship(s)',
+                    choices: './../ships.json|manufacturer|ships',
+                    next: 'moreShips',
+                    pushToArray: true,
+                },
+                moreShips: {
+                    question: 'Does the package contain more vehicles (yes/no)?',
+                    next: {
+                        yes: 'shipMake',
+                        no: 'image',
+                    }
+                },
+                image: {
+                    question: 'Please send me a screenshot of the package from your hangar on CIG website',
+                    answerThumbnail: true,
+                    next: 'confirm',
+                    getAttachementUri: true,
+                },
+                confirm: {
+                    question: 'Are you satisfied with your created ship package, or do you wish to restart?',
+                    showAnswers: true,
+                    next: {
+                        yes: '#save#',
+                        no: '#end#',
+                    }
+                }
+            }
+        };
     }
 
-    execute(message, args) {
+    execute(message, args, dataMessage) {
         console.log(this.args[0].split('/'), this.args[0].split('/').indexOf(args[0]), args[0]);
         if (this.args[0].split('/').indexOf(args[0]) < 0) {
             return message.reply('sorry, but you did not give me a correct argument. Use either "fleet ' + this.args[0] + '".');
@@ -29,7 +114,7 @@ class Command extends BaseCommand {
                 this.list(message, args);
                 break;
             case 'add':
-                this.add(message, args);
+                this.add(message, args, dataMessage);
                 break;
             case 'rem':
                 this.rem(message, args);
@@ -53,12 +138,8 @@ class Command extends BaseCommand {
         );
     }
 
-    add(message, args) {
-        const data = {
-
-        };
-        console.log(data);
-        message.reply('the ship has now been added to your fleet.');
+    add(message, args, dataMessage) {
+        this.handleConversation(message, args, dataMessage)
     }
 };
 

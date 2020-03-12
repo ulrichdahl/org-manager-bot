@@ -1,0 +1,245 @@
+[
+    {
+        "manufacturer": "Aegis Dynamics",
+        "ships": [
+            "Avenger Stalker",
+            "Avenger Titan",
+            "Avenger Titan Renegade",
+            "Avenger Warlock",
+            "Eclipse",
+            "Gladius",
+            "Gladius Valiant",
+            "Hammerhead",
+            "Hammerhead Best in Show Edition",
+            "Idris-M",
+            "Idris-P",
+            "Javelin",
+            "Nautilus",
+            "Nautilus Solstice Edition",
+            "Pirate Gladius",
+            "Reclaimer",
+            "Reclaimer Best in Show Edition",
+            "Redeemer",
+            "Retaliator Base",
+            "Retaliator Bomber",
+            "Sabre",
+            "Sabre Comet",
+            "Sabre Raven",
+            "Vanguard Harbinger",
+            "Vanguard Hoplite",
+            "Vanguard Sentinel",
+            "Vanguard Warden",
+            "Vulcan"
+        ]
+    },
+    {
+        "manufacturer": "Anvil Aurospace",
+        "ships": [
+            "Arrow",
+            "Ballista",
+            "Ballista Dunestalker",
+            "Ballista Snowblind",
+            "C8 Pisces",
+            "C8 Pisces",
+            "C8X Pisces Expedition",
+            "Carrack",
+            "Carrack Expediton",
+            "Crucible",
+            "F7C Hornet",
+            "F7C Hornet Wildfire",
+            "F7C-M Hornet Heartseeker",
+            "F7C-M Super Hornet",
+            "F7C-R Hornet Tracker",
+            "F7C-S Hornet Ghost",
+            "F8C Lightning",
+            "F8C Lightning Executive Edition",
+            "Gladiator",
+            "Hawk",
+            "Hurricane",
+            "Terrapin",
+            "Valkyrie",
+            "Valkyrie Liberator"
+        ]
+    },
+    {
+        "manufacturer": "Aopoa",
+        "ships": [
+            "Khartu-al",
+            "Nox",
+            "Nox Kue",
+            "San'tok.yāi"
+        ]
+    },
+    {
+        "manufacturer": "Argo Astronautics",
+        "ships": [
+            "Mole",
+            "Mole Carbon Edition",
+            "Mole Talus Edition",
+            "MPUV-1C",
+            "MPUV-1P",
+            "SRV"
+        ]
+    },
+    {
+        "manufacturer": "Banu",
+        "ships": [
+            "Defender",
+            "Merchantman"
+        ]
+    },
+    {
+        "manufacturer": "Consolidated Outland",
+        "ships": [
+            "Mustang Alpha",
+            "Mustang Alpha Vindicator",
+            "Mustang Beta",
+            "Mustang Delta",
+            "Mustang Gamma",
+            "Mustang Omega",
+            "Pioneer"
+        ]
+    },
+    {
+        "manufacturer": "Crusader Industries",
+        "ships": [
+            "Ares Inferno",
+            "Ares Ion",
+            "Genesis",
+            "Hercules Starlifter A2",
+            "Hercules Starlifter C2",
+            "Hercules Starlifter M2",
+            "Mercury Star Runner"
+        ]
+    },
+    {
+        "manufacturer": "Drake Interplanetary",
+        "ships": [
+            "Buccaneer",
+            "Caterpillar",
+            "Caterpillar Best in Show Edition",
+            "Caterpillar Pirate Edition",
+            "Corsair",
+            "Cutlass Black",
+            "Cutlass Black Best in Show Edition",
+            "Cutlass Blue",
+            "Cutlass Red",
+            "Dragonfly Black",
+            "Dragonfly Yellowjacket",
+            "Herald",
+            "Kraken",
+            "Kraken Privateer",
+            "Star Kitten Pink Dragonfly",
+            "Vulture"
+        ]
+    },
+    {
+        "manufacturer": "Esperia",
+        "ships": [
+            "Blade",
+            "Glaive",
+            "Prowler"
+        ]
+    },
+    {
+        "manufacturer": "Greycat IndustriaL",
+        "ships": [
+            "Greycat PTV"
+        ]
+    },
+    {
+        "manufacturer": "Kruger Intergalactic",
+        "ships": [
+            "P-52 Merlin",
+            "P-72 Archimedes"
+        ]
+    },
+    {
+        "manufacturer": "Musashi Industrial & Starflight Concern",
+        "ships": [
+            "Endeavor",
+            "Freelancer",
+            "Freelancer DUR",
+            "Freelancer MAX",
+            "Freelancer MIS",
+            "Hull A",
+            "Hull B",
+            "Hull C",
+            "Hull D",
+            "Hull E",
+            "Prospector",
+            "Razor",
+            "Razor EX",
+            "Razor LX",
+            "Reliant Kore",
+            "Reliant Mako",
+            "Reliant Sen",
+            "Reliant Tana",
+            "Starfarer",
+            "Starfarer Gemini"
+        ]
+    },
+    {
+        "manufacturer": "Origin Jumpworks GmbH",
+        "ships": [
+            "100i",
+            "125a",
+            "135c",
+            "300i",
+            "315p",
+            "325a",
+            "350r",
+            "600i Executive Edition",
+            "600i Explorer",
+            "600i Touring",
+            "85X",
+            "890 Jump",
+            "M50",
+            "X1 Base",
+            "X1 Force",
+            "X1 Velocity"
+        ]
+    },
+    {
+        "manufacturer": "Roberts Space Industries",
+        "ships": [
+            "Apollo Medivac",
+            "Apollo Triage",
+            "Aurora CL",
+            "Aurora ES",
+            "Aurora LN",
+            "Aurora LX",
+            "Aurora MR",
+            "Constellation Andromeda",
+            "Constellation Aquila",
+            "Constellation Phoenix",
+            "Constellation Phoenix Emerald",
+            "Constellation Taurus",
+            "Mantis",
+            "Orion",
+            "Polaris",
+            "Ursa Rover",
+            "Ursa Rover Fortuna"
+        ]
+    },
+    {
+        "manufacturer": "Tumbril Land Systems",
+        "ships": [
+            "Cyclone",
+            "Cyclone-RC",
+            "Cyclone-RN",
+            "Cyclone-TR",
+            "Cyclone-AA",
+            "Nova Tank",
+            "Ranger CV",
+            "Ranger RC",
+            "Ranger TR"
+        ]
+    },
+    {
+        "manufacturer": "Vanduul",
+        "ships": [
+            "Scythe"
+        ]
+    }
+]
