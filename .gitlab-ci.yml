@@ -1,0 +1,52 @@
+stages:
+  - test
+  - build
+  - deploy
+
+image: node:latest
+
+# Pick zero or more services to be used on all builds.
+# Only needed when using a docker container to run your tests in.
+# Check out: http://docs.gitlab.com/ce/ci/docker/using_docker_images.html#what-is-a-service
+services:
+
+# This folder is cached between builds
+# http://docs.gitlab.com/ce/ci/yaml/README.html#cache
+cache:
+  paths:
+    - node_modules/
+
+test:
+  stage: test
+  script:
+    - echo "Running tests"
+    - npm install
+    #- npm test
+
+build:
+  stage: build
+  script: echo "Building the app"
+
+deploy_staging:
+  stage: deploy
+  script:
+    - echo "Deploy to staging server"
+    - echo '{"token":"$DISCORD_TOKEN","server":"$DISCORD_SERVER","channel":"$DISCORD_CHANNEL","urlPrefix":"$FLEET_MANAGER_API_URI"}' > config.json
+    - cat config.json
+  environment:
+    name: staging
+    url: https://staging.example.com
+  only:
+  - master
+
+deploy_prod:
+  stage: deploy
+  script:
+    - echo "Deploy to production server"
+    - echo '{"token":"$DISCORD_TOKEN","server":"$DISCORD_SERVER","channel":"$DISCORD_CHANNEL","urlPrefix":"$FLEET_MANAGER_API_URI"}' > config.json
+  environment:
+    name: production
+    url: https://example.com
+  when: manual
+  only:
+  - master

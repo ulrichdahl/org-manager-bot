@@ -1,7 +1,13 @@
-module.exports = {
-    name: 'help',
-    description: 'Show what the bot can do here.',
-    usage: '',
+const BaseCommand = require('./../lib/command');
+
+class Command extends BaseCommand {
+
+	constructor() {
+        super();
+		this.name = 'help';
+		this.description ='Show what the bot can do here.';
+		this.usage = '';
+	}
 
     execute(message, args) {
         const data = [];
@@ -36,10 +42,12 @@ module.exports = {
 
 		data.push(`**Name:** ${command.name}`);
 
-		if (command.aliases) data.push(`**Aliases:** ${command.aliases.join(', ')}`);
-		if (command.description) data.push(`**Description:** ${command.description}`);
-		if (command.usage) data.push(`**Usage:** ${command.name} ${command.usage}`);
+		if (command.aliases.length) data.push(`**Aliases:** ${command.aliases.join(', ')}`);
+		if (command.description) data.push(command.description);
+		if (command.usage) data.push('```'+command.usage+'```');
 
 		message.channel.send(data, { split: true });
     }
 };
+
+module.exports = new Command();
