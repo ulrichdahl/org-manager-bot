@@ -37,7 +37,7 @@ build:
   - master
 
 deploy_staging:
-  image: $CI_REGISTRY/ulrichdahl/fleet-manager-bot
+  image: $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_REF_SLUG
   stage: deploy
   script:
     - echo "Deploy to staging server"
@@ -49,8 +49,16 @@ deploy_staging:
   only:
   - master
 
+push_to_latest:
+  stage: deploy
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker tag $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_REF_SLUG $CI_REGISTRY/ulrichdahl/fleet-manager-bot:latest
+    - docker push $CI_REGISTRY/ulrichdahl/fleet-manager-bot:latest
+  when: manual
+
 deploy_prod:
-  image: $CI_REGISTRY/ulrichdahl/fleet-manager-bot
+  image: $CI_REGISTRY/ulrichdahl/fleet-manager-bot:latest
   stage: deploy
   script:
     - echo "Deploy to production server"
@@ -58,6 +66,6 @@ deploy_prod:
   environment:
     name: production
     url: https://example.com
-  when: manual
+  needs: ["push_to_latest"]
   only:
   - master
