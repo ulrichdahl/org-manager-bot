@@ -19,15 +19,22 @@ cache:
 test:
   stage: test
   script:
-    - echo "Running tests"
     - npm install
     #- npm test
 
 build:
+  image: docker:stable
   stage: build
-  script: echo "Building the app"
+  script: 
+    - docker info
+    - docker build -t registry.gitlab.com/ulrichdahl/fleet-manager-bot .
+    - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
+    - docker push registry.gitlab.com/ulrichdahl/fleet-manager-bot
+  only:
+  - master
 
 deploy_staging:
+  image: ulrichdahl/fleet-manager-bot
   stage: deploy
   script:
     - echo "Deploy to staging server"
@@ -40,6 +47,7 @@ deploy_staging:
   - master
 
 deploy_prod:
+  image: ulrichdahl/fleet-manager-bot
   stage: deploy
   script:
     - echo "Deploy to production server"
