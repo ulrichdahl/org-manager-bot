@@ -37,7 +37,7 @@ build:
   - master
 
 deploy_staging:
-  image: ulrichdahl/fleet-manager-bot
+  image: $CI_REGISTRY/ulrichdahl/fleet-manager-bot
   stage: deploy
   script:
     - echo "Deploy to staging server"
@@ -50,7 +50,7 @@ deploy_staging:
   - master
 
 deploy_prod:
-  image: ulrichdahl/fleet-manager-bot
+  image: $CI_REGISTRY/ulrichdahl/fleet-manager-bot
   stage: deploy
   script:
     - echo "Deploy to production server"
