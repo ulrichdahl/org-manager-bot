@@ -39,7 +39,7 @@ class Command extends BaseCommand {
                     question: 'What was the price of the group, when you bought it?',
                     answer: 'Purchase price',
                     help: 'Please write the price followed by the currency like: 350 USD',
-                    next: 'boughtDate',
+                    next: 'boughtVat',
                     validation: '^\\d+[,\\.]{0,1}\\d{0,2} \\w{3}$',
                 },
                 boughtVat: {
