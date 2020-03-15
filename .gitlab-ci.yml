@@ -23,8 +23,12 @@ test:
     #- npm test
 
 build:
-  image: docker:stable
+  image: docker:19
+  services:
+  - docker:19-dind
   stage: build
+  variables:
+    DOCKER_TLS_CERTDIR: ""
   script: 
     - docker info
     - docker build -t registry.gitlab.com/ulrichdahl/fleet-manager-bot .
