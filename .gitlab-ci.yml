@@ -35,7 +35,7 @@ deploy_staging:
   script:
     - docker pull $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_SHORT_SHA 
     - docker stop fleet-manager-bot-staging && test 1
-    - docker run --name fleet-manager-bot-staging -d -e "TOKEN=$DISCORD_TOKEN" -e "GUILD=$DISCORD_SERVER" -e "URI_PREFIX=$FLEET_MANAGER_API_URI" $CI_REGISTRY/ulrichdahl/fleet-manager-bot:latest
+    - docker run --name fleet-manager-bot-staging -d -e "TOKEN=$DISCORD_TOKEN" -e "GUILD=$DISCORD_SERVER" -e "URI_PREFIX=$FLEET_MANAGER_API_URI" $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_SHORT_SHA
   environment:
     name: staging
     url: https://staging-fleet-manager.ulrichdahl.dk
