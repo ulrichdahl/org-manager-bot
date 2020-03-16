@@ -34,8 +34,8 @@ deploy_staging:
   stage: staging
   script:
     - docker pull $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_SHORT_SHA 
-    - docker stop FleetManager_Staging && test 1
-    - docker run --name "FleetManager_Staging" -d -e "TOKEN=$DISCORD_TOKEN" -e "GUILD=$DISCORD_SERVER" -e "URI_PREFIX=$FLEET_MANAGER_API_URI" $CI_REGISTRY/ulrichdahl/fleet-manager-bot:latest
+    - docker stop fleet-manager-bot-staging && test 1
+    - docker run --name fleet-manager-bot-staging -d -e "TOKEN=$DISCORD_TOKEN" -e "GUILD=$DISCORD_SERVER" -e "URI_PREFIX=$FLEET_MANAGER_API_URI" $CI_REGISTRY/ulrichdahl/fleet-manager-bot:latest
   environment:
     name: staging
     url: https://staging-fleet-manager.ulrichdahl.dk
@@ -48,8 +48,8 @@ deploy_production:
     - docker pull $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_SHORT_SHA 
     - docker tag $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_SHORT_SHA $CI_REGISTRY/ulrichdahl/fleet-manager-bot:latest
     - docker push $CI_REGISTRY/ulrichdahl/fleet-manager-bot:latest
-    - docker stop FleetManager_Production && test 1
-    - docker run --name "FleetManager_Production" -d -e "TOKEN=$DISCORD_TOKEN" -e "GUILD=$DISCORD_SERVER" -e "URI_PREFIX=$FLEET_MANAGER_API_URI" $CI_REGISTRY/ulrichdahl/fleet-manager-bot:latest
+    - docker stop fleet-manager-bot && test 1
+    - docker run --name fleet-manager-bot -d -e "TOKEN=$DISCORD_TOKEN" -e "GUILD=$DISCORD_SERVER" -e "URI_PREFIX=$FLEET_MANAGER_API_URI" $CI_REGISTRY/ulrichdahl/fleet-manager-bot:latest
   environment:
     name: production
     url: https://fleet-manager.ulrichdahl.dk
