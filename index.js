@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 global.Discord = require('discord.js');
 global.client = new Discord.Client();
 global.fetch = require('node-fetch');
@@ -16,10 +18,9 @@ for (const file of commandFiles) {
 }
 
 // Load configuration from environment
-const token = process.env.TOKEN;
-const servers_guild = process.env.GUILD;
-request.prefix = process.env.URI_PREFIX;
-
+const token = process.env.DISCORD_TOKEN;
+const servers_guild = process.env.DISCORD_SERVER_ID;
+request.prefix = process.env.FLEET_MANAGER_API_URI;
 
 client.on('ready', () => {
     console.log('Bot is now connected!');
