@@ -15,9 +15,11 @@ for (const file of commandFiles) {
     client.commands.set(command.name, command);
 }
 
-// Load configuration
-const { token, urlPrefix } = require('./config.json');
-request.prefix = urlPrefix;
+// Load configuration from environment
+const token = process.env.TOKEN;
+const servers_guild = process.env.GUILD;
+request.prefix = process.env.URI_PREFIX;
+
 
 client.on('ready', () => {
     console.log('Bot is now connected!');
