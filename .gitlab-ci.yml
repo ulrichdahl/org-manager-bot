@@ -1,7 +1,7 @@
 stages:
   - test
-  - staging
-  - release
+  - build
+  - deploy
 
 image: docker:19
 
@@ -21,17 +21,35 @@ before_script:
 # http://docs.gitlab.com/ce/ci/yaml/README.html#cache
 # cache:
 
-build:
+test:
+  image: node:latest
   stage: test
+  cache:
+    key:
+      files:
+        - package.json
+        - package-lock.json
+    paths:
+      - node_modules
+  script: 
+    - npm install
+    - npm run test
+  except:
+    - master
+    - tags
+
+build:
+  stage: build
   script: 
     - docker build --pull -t $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_SHORT_SHA .
     - docker run $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_SHORT_SHA npm run test
     - docker push $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_SHORT_SHA
   only:
     - master
+    - tags
 
 deploy_staging:
-  stage: staging
+  stage: deploy
   script:
     - docker pull $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_SHORT_SHA 
     - docker rm -v fleet-manager-bot-staging && test 1
@@ -43,7 +61,7 @@ deploy_staging:
     - master
 
 deploy_production:
-  stage: release
+  stage: deploy
   script:
     - docker pull $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_SHORT_SHA 
     - docker tag $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_SHORT_SHA $CI_REGISTRY/ulrichdahl/fleet-manager-bot:latest
@@ -53,6 +71,5 @@ deploy_production:
   environment:
     name: production
     url: https://fleet-manager.ulrichdahl.dk
-  when: manual
   only:
-    - master
+    - tags
