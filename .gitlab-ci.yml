@@ -39,9 +39,9 @@ build:
   stage: build
   script: 
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build --pull -t $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_SHORT_SHA .
-    - docker run $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_SHORT_SHA npm run test
-    - docker push $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_SHORT_SHA
+    - docker build --pull -t $CI_REGISTRY/ulrichdahl/fleet-manager-bot:staging_$CI_COMMIT_SHORT_SHA .
+    - docker run $CI_REGISTRY/ulrichdahl/fleet-manager-bot:staging_$CI_COMMIT_SHORT_SHA npm run test
+    - docker push $CI_REGISTRY/ulrichdahl/fleet-manager-bot:staging_$CI_COMMIT_SHORT_SHA
   only:
     - master
     - tags
@@ -50,10 +50,10 @@ deploy_staging:
   stage: deploy
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker pull $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_SHORT_SHA 
+    - docker pull $CI_REGISTRY/ulrichdahl/fleet-manager-bot:staging_$CI_COMMIT_SHORT_SHA 
     - docker stop fleet-manager-bot-staging && test 1
     - docker rm -v fleet-manager-bot-staging && test 1
-    - docker run --name fleet-manager-bot-staging -d -e "TOKEN=$DISCORD_TOKEN" -e "GUILD=$DISCORD_SERVER" -e "URI_PREFIX=$FLEET_MANAGER_API_URI" $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_SHORT_SHA
+    - docker run --name fleet-manager-bot-staging -d -e "TOKEN=$DISCORD_TOKEN" -e "GUILD=$DISCORD_SERVER" -e "URI_PREFIX=$FLEET_MANAGER_API_URI" $CI_REGISTRY/ulrichdahl/fleet-manager-bot:staging_$CI_COMMIT_SHORT_SHA
   environment:
     name: staging
     url: https://staging-fleet-manager.ulrichdahl.dk
@@ -64,8 +64,8 @@ deploy_production:
   stage: deploy
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker pull $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_SHORT_SHA
-    - docker tag $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_SHORT_SHA $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_REF_NAME
+    - docker pull $CI_REGISTRY/ulrichdahl/fleet-manager-bot:staging_$CI_COMMIT_SHORT_SHA
+    - docker tag $CI_REGISTRY/ulrichdahl/fleet-manager-bot:staging_$CI_COMMIT_SHORT_SHA $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_REF_NAME
     - docker push $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_REF_NAME
     - docker tag $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_REF_NAME $CI_REGISTRY/ulrichdahl/fleet-manager-bot:latest
     - docker push $CI_REGISTRY/ulrichdahl/fleet-manager-bot:latest
