@@ -14,7 +14,8 @@ class Command extends BaseCommand {
 	execute(message) {
 		const embed = new Discord.MessageEmbed()
             .setTitle('Fleet manager connected servers')
-            .setColor(0x223213);
+            .setColor(0x223213)
+            .setFooter('I am version '+process.env.VERSION);
         this.client.guilds.cache.forEach(guild => {
             embed.addField(guild.name, 'ID: '+guild.id+'\nMembers: '+guild.memberCount);
         });

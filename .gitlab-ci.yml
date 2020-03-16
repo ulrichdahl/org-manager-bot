@@ -50,10 +50,10 @@ deploy_staging:
   stage: deploy
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker pull $CI_REGISTRY/ulrichdahl/fleet-manager-bot:staging_$CI_COMMIT_SHORT_SHA 
+    - docker pull $CI_REGISTRY/ulrichdahl/fleet-manager-bot:staging_$CI_COMMIT_SHORT_SHA
     - docker stop fleet-manager-bot-staging && test 1
     - docker rm -v fleet-manager-bot-staging && test 1
-    - docker run --name fleet-manager-bot-staging -d -e "DISCORD_TOKEN=$DISCORD_TOKEN" -e "DISCORD_SERVER_ID=$DISCORD_SERVER_ID" -e "FLEET_MANAGER_API_URI=$FLEET_MANAGER_API_URI" $CI_REGISTRY/ulrichdahl/fleet-manager-bot:staging_$CI_COMMIT_SHORT_SHA
+    - docker run --name fleet-manager-bot-staging -d -e "VERSION=$CI_COMMIT_SHORT_SHA" -e "DISCORD_TOKEN=$DISCORD_TOKEN" -e "DISCORD_SERVER_ID=$DISCORD_SERVER_ID" -e "FLEET_MANAGER_API_URI=$FLEET_MANAGER_API_URI" $CI_REGISTRY/ulrichdahl/fleet-manager-bot:staging_$CI_COMMIT_SHORT_SHA
   environment:
     name: staging
     url: https://staging-fleet-manager.ulrichdahl.dk
@@ -71,7 +71,7 @@ deploy_production:
     - docker push $CI_REGISTRY/ulrichdahl/fleet-manager-bot:latest
     - docker stop fleet-manager-bot && test 1
     - docker rm -v fleet-manager-bot && test 1
-    - docker run --name fleet-manager-bot -d -e "DISCORD_TOKEN=$DISCORD_TOKEN" -e "DISCORD_SERVER_ID=$DISCORD_SERVER_ID" -e "FLEET_MANAGER_API_URI=$FLEET_MANAGER_API_URI" $CI_REGISTRY/ulrichdahl/fleet-manager-bot:latest
+    - docker run --name fleet-manager-bot -d -e "VERSION=$CI_COMMIT_REF_NAME" -e "DISCORD_TOKEN=$DISCORD_TOKEN" -e "DISCORD_SERVER_ID=$DISCORD_SERVER_ID" -e "FLEET_MANAGER_API_URI=$FLEET_MANAGER_API_URI" $CI_REGISTRY/ulrichdahl/fleet-manager-bot:latest
   environment:
     name: production
     url: https://fleet-manager.ulrichdahl.dk
