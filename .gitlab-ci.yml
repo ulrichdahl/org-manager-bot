@@ -40,7 +40,7 @@ build:
   script: 
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker build --pull -t $CI_REGISTRY/ulrichdahl/fleet-manager-bot:staging_$CI_COMMIT_SHORT_SHA .
-    - docker run $CI_REGISTRY/ulrichdahl/fleet-manager-bot:staging_$CI_COMMIT_SHORT_SHA npm run test
+    - docker run --rm --name fleet-manager-bot-test $CI_REGISTRY/ulrichdahl/fleet-manager-bot:staging_$CI_COMMIT_SHORT_SHA npm run test
     - docker push $CI_REGISTRY/ulrichdahl/fleet-manager-bot:staging_$CI_COMMIT_SHORT_SHA
   only:
     - master
