@@ -1,4 +1,8 @@
 FROM node:latest
+
+ADD package.json /opt/
 WORKDIR /opt/
-COPY . .
+RUN npm install
+ADD . /opt
+
 CMD [ "node", "index.js" ]

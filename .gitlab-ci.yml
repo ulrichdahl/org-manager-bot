@@ -1,79 +1,58 @@
 stages:
   - test
-  - build
-  - deploy
+  - staging
+  - release
 
-image: node:latest
+image: docker:19
 
 # Pick zero or more services to be used on all builds.
 # Only needed when using a docker container to run your tests in.
 # Check out: http://docs.gitlab.com/ce/ci/docker/using_docker_images.html#what-is-a-service
 services:
+  - docker:19-dind
+
+variables:
+  DOCKER_TLS_CERTDIR: ""
+
+before_script:
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
 # This folder is cached between builds
 # http://docs.gitlab.com/ce/ci/yaml/README.html#cache
-cache:
-  paths:
-    - node_modules/
-
-test:
-  stage: test
-  script:
-    - npm install
-    #- npm test
+# cache:
 
 build:
-  image: docker:19
-  services:
-  - docker:19-dind
-  stage: build
-  variables:
-    DOCKER_TLS_CERTDIR: ""
+  stage: test
   script: 
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build --pull -t $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_REF_SLUG .
-    - docker push $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_REF_SLUG
+    - docker build --pull -t $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_SHORT_SHA .
+    - docker run $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_SHORT_SHA npm run test
+    - docker push $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_SHORT_SHA
   only:
     - master
 
 deploy_staging:
-  image: $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_REF_SLUG
-  stage: deploy
+  stage: staging
   script:
-    - echo "Deploy to staging server"
-    - echo '{"token":"$DISCORD_TOKEN","server":"$DISCORD_SERVER","channel":"$DISCORD_CHANNEL","urlPrefix":"$FLEET_MANAGER_API_URI"}' > config.json
-    - cat config.json
+    - dokcer pull $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_SHORT_SHA 
+    - docker stop FleetManager_Staging
+    - docker run --name "FleetManager_Staging" -d -e "TOKEN=$DISCORD_TOKEN" -e "GUILD=$DISCORD_SERVER" -e "URI_PREFIX=$FLEET_MANAGER_API_URI" $CI_REGISTRY/ulrichdahl/fleet-manager-bot:latest
   environment:
     name: staging
-    url: https://staging.example.com
+    url: https://staging-fleet-manager.ulrichdahl.dk
   only:
     - master
 
-push_to_latest:
-  image: docker:19
-  services:
-  - docker:19-dind
-  variables:
-    DOCKER_TLS_CERTDIR: ""
-  stage: build
+deploy_production:
+  stage: release
   script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker tag $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_REF_SLUG $CI_REGISTRY/ulrichdahl/fleet-manager-bot:latest
+    - dokcer pull $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_SHORT_SHA 
+    - docker tag $CI_REGISTRY/ulrichdahl/fleet-manager-bot:$CI_COMMIT_SHORT_SHA $CI_REGISTRY/ulrichdahl/fleet-manager-bot:latest
     - docker push $CI_REGISTRY/ulrichdahl/fleet-manager-bot:latest
-  when: manual
-  only:
-    - master
-
-deploy_prod:
-  image: $CI_REGISTRY/ulrichdahl/fleet-manager-bot:latest
-  stage: deploy
-  script:
-    - echo "Deploy to production server"
-    - echo '{"token":"$DISCORD_TOKEN","server":"$DISCORD_SERVER","channel":"$DISCORD_CHANNEL","urlPrefix":"$FLEET_MANAGER_API_URI"}' > config.json
+    - docker stop FleetManager_Production
+    - docker run --name "FleetManager_Production" -d -e "TOKEN=$DISCORD_TOKEN" -e "GUILD=$DISCORD_SERVER" -e "URI_PREFIX=$FLEET_MANAGER_API_URI" $CI_REGISTRY/ulrichdahl/fleet-manager-bot:latest
   environment:
     name: production
-    url: https://example.com
-  dependencies: 
-    - push_to_latest
+    url: https://fleet-manager.ulrichdahl.dk
+  when: manual
   only:
     - master
