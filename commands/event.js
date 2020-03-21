@@ -157,9 +157,9 @@ class Command extends BaseCommand {
         roles.forEach((r,i) => {
             embed.addField(String.fromCharCode(0x0031+i, 0xFE0F, 0x20E3) + ` ${r[0]} (0/${r[1]})`, '-', true);
         });
-        embed.addField(this.REACTION_YES + ' Ja, jeg vil med', '-', true);
-        embed.addField(this.REACTION_MAYBE + ' Måske kan jeg', '-', true);
-        embed.addField(this.REACTION_NO + ' Nej, jeg kan ikke', '-', true);
+        embed.addField(this.REACTION_YES + ' Ja, deltager', '-', true);
+        embed.addField(this.REACTION_MAYBE + ' Deltager måske', '-', true);
+        embed.addField(this.REACTION_NO + ' Deltager ikke', '-', true);
         embed.addField('❔ Brug for hjælp?', 'Giv besked ved at trykke på en reaktion under beskeden.');
         BaseCommand.encodeFooter(embed, {
             command: 'event',
@@ -192,17 +192,17 @@ class Command extends BaseCommand {
         });
         reactionList.push({
             emoji: this.REACTION_YES,
-            name: 'Ja, jeg vil med',
+            name: 'Ja, deltager',
             crew: 0,
         });
         reactionList.push({
             emoji: this.REACTION_MAYBE,
-            name: 'Måske kan jeg',
+            name: 'Deltager måske',
             crew: 0,
         });
         reactionList.push({
             emoji: this.REACTION_NO,
-            name: 'Nej, jeg kan ikke',
+            name: 'Deltager ikke',
             crew: 0,
         });
         
@@ -220,7 +220,7 @@ class Command extends BaseCommand {
                 embed.fields[i].value = '-';
                 count = 0;
             }
-            embed.fields[i].name = `${r.emoji} ${r.name} (${count}/${r.crew})`;
+            embed.fields[i].name = `${r.emoji} ${r.name}` + (r.crew ? ` (${count}/${r.crew})` : ` (${count})`);
             total += count;
         });
         embed.fields[reactionList.length].name = `Der er ${total} bruger(e) som har givet besked`;
