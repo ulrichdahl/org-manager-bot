@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 global.Discord = require('discord.js');
-global.client = new Discord.Client();
+global.client = new Discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
 global.fetch = require('node-fetch');
 global.fs = require('fs');
 global.request = require('./lib/requests');
@@ -10,6 +10,7 @@ const Command = require('./lib/command');
 
 // Load commands from files in commands
 client.commands = new Discord.Collection();
+
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
@@ -23,8 +24,11 @@ const servers_guild = process.env.DISCORD_SERVER_ID;
 request.prefix = process.env.FLEET_MANAGER_API_URI;
 
 client.on('ready', () => {
-    console.log('Bot is now connected!\nVersion ', process.env.VERSION);
+    console.log('Bot is now connected!\nVersion:', process.env.VERSION);
 });
+
+client.on('messageReactionAdd', Command.handleReaction);
+client.on('messageReactionRemove', Command.handleReaction);
 
 client.on('message', (_message) => {
     // If this is a guild message and does not have prefix, or is from a bot then ignore it
@@ -51,7 +55,8 @@ client.on('message', (_message) => {
                     }
                     else {
                         console.log('User said:', m.content);
-                        var args = m.content.split(/ +/);
+                        var args = String(m.content).match(/(?:[^\s"]+|"[^"]*")+/g).map(v => v.match(/(")*(.+)\1/)[2]);
+                        console.log('Args in content', args);
                         // if this is a direct message, then remove the @user part
                         if (m.channel.type === 'text') {
                             args.shift();
