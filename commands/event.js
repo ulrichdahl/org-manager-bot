@@ -5,9 +5,21 @@ var chrono = require('chrono-node');
 
 class Command extends BaseCommand {
 
-    REACTION_YES = '🙋';
-    REACTION_NO = '🙅';
-    REACTION_MAYBE = '🤷';
+    REACTION_YES = {
+        emoji: '✅',
+        name: 'Deltager',
+        crew: 0,
+    };
+    REACTION_NO = {
+        emoji: '❌',
+        name: 'Deltager ikke',
+        crew: 0,
+    };
+    REACTION_MAYBE = {
+        emoji: '❔',
+        name: 'Deltager måske',
+        crew: 0,
+    };
 
     constructor() {
         super();
@@ -157,10 +169,10 @@ class Command extends BaseCommand {
         roles.forEach((r,i) => {
             embed.addField(String.fromCharCode(0x0031+i, 0xFE0F, 0x20E3) + ` ${r[0]} (0/${r[1]})`, '-', true);
         });
-        embed.addField(this.REACTION_YES + ' Ja, deltager', '-', true);
-        embed.addField(this.REACTION_MAYBE + ' Deltager måske', '-', true);
-        embed.addField(this.REACTION_NO + ' Deltager ikke', '-', true);
-        embed.addField('❔ Brug for hjælp?', 'Giv besked ved at trykke på en reaktion under beskeden.');
+        embed.addField(this.REACTION_YES.emoji + ' ' + this.REACTION_YES.name, '-', true);
+        embed.addField(this.REACTION_MAYBE.emoji + ' ' + this.REACTION_MAYBE.name, '-', true);
+        embed.addField(this.REACTION_NO.emoji + ' ' + this.REACTION_NO.name, '-', true);
+        embed.addField('Der er endnu ingen tilmeldinger', 'Giv besked ved at trykke på en reaktion under beskeden.');
         BaseCommand.encodeFooter(embed, {
             command: 'event',
             time: time,
@@ -172,14 +184,20 @@ class Command extends BaseCommand {
                 roles.forEach(async (r,i) => {
                     await m.react(String.fromCharCode(0x0031+i, 0xFE0F, 0x20E3));
                 });
-                await m.react(this.REACTION_YES);
-                await m.react(this.REACTION_MAYBE);
-                await m.react(this.REACTION_NO);
+                await m.react(this.REACTION_YES.emoji);
+                await m.react(this.REACTION_MAYBE.emoji);
+                await m.react(this.REACTION_NO.emoji);
             })
             .catch(e => console.log(e));
     }
 
-    executeReaction(reaction, data) {
+    executeReaction(event, reaction, user, data) {
+        // Remove old default reactions
+        reaction.message.reactions.cache.filter(r => ['🙋', '🤷', '🙅'].includes(r.emoji.name)).each(async r => {
+            console.log('Cleaning up old reaction', r.emoji.name);
+            await r.remove();
+        });
+        
         var embed = reaction.message.embeds.pop();
 
         var reactionList = [];
@@ -190,41 +208,54 @@ class Command extends BaseCommand {
                 crew: r[1],
             });
         });
-        reactionList.push({
-            emoji: this.REACTION_YES,
-            name: 'Ja, deltager',
-            crew: 0,
-        });
-        reactionList.push({
-            emoji: this.REACTION_MAYBE,
-            name: 'Deltager måske',
-            crew: 0,
-        });
-        reactionList.push({
-            emoji: this.REACTION_NO,
-            name: 'Deltager ikke',
-            crew: 0,
-        });
+        reactionList.push(this.REACTION_YES);
+        reactionList.push(this.REACTION_MAYBE);
+        reactionList.push(this.REACTION_NO);
         
         var mr = null;
         var total = 0;
         var count = 0;
-        reactionList.forEach((r, i) => {
-            mr = reaction.message.reactions.cache.find(re => re.emoji.name === r.emoji);
-            if (mr) {
-                embed.fields[i].value = mr.users.cache.filter(u => u.id !== this.client.user.id)
-                    .map(u => '> <@' + u.id + '>').join('\n');
-                count = mr.count-1;
-            }
-            if (embed.fields[i].value === '') {
-                embed.fields[i].value = '-';
-                count = 0;
-            }
-            embed.fields[i].name = `${r.emoji} ${r.name}` + (r.crew ? ` (${count}/${r.crew})` : ` (${count})`);
-            total += count;
+        let userFetches = [];
+        // We need to fetch the users of all reactions to build the fields
+        reaction.message.reactions.cache.each(r => {
+            userFetches.push(r.users.fetch());
         });
-        embed.fields[reactionList.length].name = `Der er ${total} bruger(e) som har givet besked`;
-        reaction.message.edit(embed);
+        Promise.all(userFetches).then(() => {
+            let excludeUsers = null;
+            reactionList.forEach((r, i) => {
+                // Make sure the bot is excluded from attendance lists
+                excludeUsers = [this.client.user.id];
+                mr = reaction.message.reactions.cache.find(re => re.emoji.name === r.emoji);
+                if (mr) {
+                    // if this is not a remove event, then check if the user is on another reaction, and the bot should not remove it own reactions
+                    if (event !== 'remove' && mr.emoji.name !== reaction.emoji.name && mr.users.cache.has(user.id) && this.client.user.id != user.id) {
+                        // exclude the user and remove the user async from the reaction
+                        excludeUsers.push(user.id);
+                        mr.users.remove(user.id);
+                    }
+                    // Build a list of users except the 
+                    embed.fields[i].value = mr.users.cache.filter(u => !excludeUsers.includes(u.id)).map(u => '> <@' + u.id + '>').join('\n');
+                    count = mr.users.cache.size-1;
+                }
+                if (embed.fields[i].value === '') {
+                    embed.fields[i].value = '-';
+                    count = 0;
+                }
+                embed.fields[i].name = `${r.emoji} ${r.name}` + (r.crew ? ` (${count}/${r.crew})` : ` (${count})`);
+                total += count;
+            });
+            embed.fields[reactionList.length].name = `Der er ${total} bruger(e) som har givet besked`;
+            reaction.message.edit(embed)
+            .then(async m => {
+                reactionList.forEach(async (r,i) => {
+                    if (!m.reactions.cache.has(r.emoji)) {
+                        await m.react(r.emoji);
+                    }
+                });
+                console.log('done', event, reaction.emoji.name, user.username);
+            })
+            .catch(e => console.log(e));
+        });
     }
 
     add(message, args, dataMessage) {

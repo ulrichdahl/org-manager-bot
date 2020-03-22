@@ -27,8 +27,8 @@ client.on('ready', () => {
     console.log('Bot is now connected!\nVersion:', process.env.VERSION);
 });
 
-client.on('messageReactionAdd', Command.handleReaction);
-client.on('messageReactionRemove', Command.handleReaction);
+client.on('messageReactionAdd', Command.handleReactionAdd);
+client.on('messageReactionRemove', Command.handleReactionRemove);
 
 client.on('message', (_message) => {
     // If this is a guild message and does not have prefix, or is from a bot then ignore it
