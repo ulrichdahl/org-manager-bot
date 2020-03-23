@@ -192,12 +192,6 @@ class Command extends BaseCommand {
     }
 
     executeReaction(event, reaction, user, data) {
-        // Remove old default reactions
-        reaction.message.reactions.cache.filter(r => ['🙋', '🤷', '🙅'].includes(r.emoji.name)).each(async r => {
-            console.log('Cleaning up old reaction', r.emoji.name);
-            await r.remove();
-        });
-        
         var embed = reaction.message.embeds.pop();
 
         var reactionList = [];
@@ -218,7 +212,9 @@ class Command extends BaseCommand {
         let userFetches = [];
         // We need to fetch the users of all reactions to build the fields
         reaction.message.reactions.cache.each(r => {
-            userFetches.push(r.users.fetch());
+            if (r.count !== r.users.cache.size) {
+                userFetches.push(r.users.fetch());
+            }
         });
         Promise.all(userFetches).then(() => {
             let excludeUsers = null;
@@ -256,40 +252,6 @@ class Command extends BaseCommand {
             })
             .catch(e => console.log(e));
         });
-    }
-
-    add(message, args, dataMessage) {
-        try {
-            this.handleConversation(message, args, dataMessage)
-        }
-        catch (e) {
-            if (e.state) {
-                if (e.state === 'save') {
-                    const p = e.data.values.boughtPrice.split(/ /);
-                    const data = {
-                        title: e.data.values.title,
-                        purchased: {
-                            price: p[0],
-                            currency: p[1],
-                            datetime: e.data.values.boughtDate
-                        },
-                        insurance: this.conversations.add.insurance.choices[e.data.values.insurance-1],
-                        type: this.conversations.add.type.choices[e.data.values.type-1],
-                        contains: e.data.values.shipType,
-                        imageUri: e.data.values.image,
-                    };
-                    console.log(data);
-                    request.post('gear-groups', data, d => {
-                        message.reply('your gear group was succesfully saved!');
-                    }, e => {
-                        message.reply('an error occured while saving your gear group. I am very sorry but please try again later.');
-                    });
-                }
-                else {
-                    message.reply('i did not save your gear group. You can start over with "fleet add".');
-                }
-            }
-        }
     }
 };
 
