@@ -16,8 +16,8 @@ class Command extends BaseCommand {
         if (!args.length) {
 			data.push('Here\'s a list of all my commands:');
             data.push(commands
-                .filter(command => !command.guildOnly && (!command.onlyAdmins || command.onlyAdmins === message.authorIsAdmin))
-                .map(command => command.name)
+                .filter(c => !c.guildOnly && (!c.onlyAdmins || c.onlyAdmins === message.authorIsAdmin))
+                .map(c => c.name)
                 .join(', ')
             );
 			data.push(`\nYou can send \`help [command name]\` to get info on a specific command!`);
