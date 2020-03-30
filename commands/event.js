@@ -176,7 +176,7 @@ class Command extends BaseCommand {
         embed.addField(this.REACTION_YES.emoji + ' ' + this.REACTION_YES.name, '-', true);
         embed.addField(this.REACTION_MAYBE.emoji + ' ' + this.REACTION_MAYBE.name, '-', true);
         embed.addField(this.REACTION_NO.emoji + ' ' + this.REACTION_NO.name, '-', true);
-        embed.addField('Der er endnu ingen tilmeldinger', 'Giv besked ved at trykke på en reaktion under beskeden.');
+        embed.fields.push(this.getEventStatusField(0));
         BaseCommand.encodeFooter(embed, {
             command: 'event',
             time: time,
@@ -194,6 +194,16 @@ class Command extends BaseCommand {
                 await m.react(this.REACTION_NOTIFY.emoji);
             })
             .catch(e => console.log(e));
+    }
+
+    getEventStatusField(count) {
+        return {
+            name: count === 0 ? 'Der er endnu ingen tilmeldinger' : `Der er ${count} bruger(e) som har givet besked`, 
+            value: 
+                'Giv besked ved at trykke på en reaktion under beskeden\n'+
+                'Tryk på '+this.REACTION_NOTIFY.emoji+' for at få en event file du kan tilføje til din kalender.',
+            inline: false,
+        };
     }
 
     getIcalFile(title, time, duration) {
@@ -271,7 +281,7 @@ class Command extends BaseCommand {
                     total += count;
                 }
             });
-            embed.fields[embed.fields.length-1].name = `Der er ${total} bruger(e) som har givet besked`;
+            embed.fields[embed.fields.length-1] = this.getEventStatusField(total);
             reaction.message.edit(embed)
             .then(async m => {
                 reactionList.forEach(async (r,i) => {
