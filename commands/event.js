@@ -2,6 +2,8 @@ const Discord = require('discord.js');
 const BaseCommand = require('../lib/command');
 const request = require('../lib/requests');
 var chrono = require('chrono-node');
+var moment = require('moment-timezone');
+var ics = require('ics');
 
 class Command extends BaseCommand {
 
@@ -18,6 +20,11 @@ class Command extends BaseCommand {
     REACTION_MAYBE = {
         emoji: '❔',
         name: 'Deltager måske',
+        crew: 0,
+    };
+    REACTION_NOTIFY = {
+        emoji: '⏰',
+        name: 'Notifikation',
         crew: 0,
     };
 
@@ -111,7 +118,7 @@ class Command extends BaseCommand {
                                 this.createEvent(message,
                                     e.data.guild,
                                     e.data.values.title, 
-                                    new Date(chrono.parseDate(e.data.values.time + ' CET', Date.now(), { forwardDate: true }))
+                                    new Date(chrono.parseDate(e.data.values.time, moment().tz('Europe/Copenhagen'), { forwardDate: true }))
                                 );
                             }
                         }
@@ -133,7 +140,7 @@ class Command extends BaseCommand {
                                     this.createEvent(message,
                                         e.data.guild,
                                         e.data.values.title, 
-                                        new Date(chrono.parseDate(e.data.values.time + ' CET', Date.now(), { forwardDate: true })), 
+                                        moment(chrono.parseDate(e.data.values.time, moment().tz('Europe/Copenhagen'), { forwardDate: true })), 
                                         roles);
                                 }
                             }
@@ -145,14 +152,14 @@ class Command extends BaseCommand {
                         let title = args.shift();   // third is title of the event
                         let time = args.join(' ');  // any following is the time of event
                         roles = roles.split(/,/).map(v => v.split(/:/));
-                        time = new Date(chrono.parseDate(time + ' CET', Date.now(), { forwardDate: true }));
+                        time = moment(chrono.parseDate(time, moment().tz('Europe/Copenhagen'), { forwardDate: true }));
                         this.createEvent(message, message.guild.id, title, time, roles);
                     }
                     break;
                 default:
                     let title = args.shift();   // third is title of the event
                     let time = args.join(' ');  // any following is the time of event
-                    time = new Date(chrono.parseDate(time + ' CET', Date.now(), { forwardDate: true }));
+                    time = moment(chrono.parseDate(time, moment().tz('Europe/Copenhagen'), { forwardDate: true }));
                     this.createEvent(message, message.guild.id, title, time);
                     break;
             }
@@ -162,10 +169,7 @@ class Command extends BaseCommand {
     createEvent(message, guildId, title, time, roles = []) {
         const embed = new Discord.MessageEmbed();
         embed.setTitle('🗓 '+title);
-        embed.setDescription('Begivneheden starter ' + time.toLocaleString('da', {
-            timeZone: 'Europe/Copenhagen',
-            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZoneName: 'short', hour: '2-digit', minute: '2-digit'
-        }));
+        embed.setDescription('Begivneheden starter ' + time.locale('da').format('LLLL'));
         roles.forEach((r,i) => {
             embed.addField(String.fromCharCode(0x0031+i, 0xFE0F, 0x20E3) + ` ${r[0]} (0/${r[1]})`, '-', true);
         });
@@ -187,12 +191,35 @@ class Command extends BaseCommand {
                 await m.react(this.REACTION_YES.emoji);
                 await m.react(this.REACTION_MAYBE.emoji);
                 await m.react(this.REACTION_NO.emoji);
+                await m.react(this.REACTION_NOTIFY.emoji);
             })
             .catch(e => console.log(e));
     }
 
+    getIcalFile(title, time, duration) {
+        var data = {
+            title: title,
+            startInputType: 'utc',
+            start: time.utc().format('YYYY-M-D-H-m').split("-"),
+            duration: { hours: duration ? duration : 1 }
+        };
+        const eventICal = ics.createEvent(data);
+        if (eventICal.error) {
+            throw eventICal.error;
+        }
+        return eventICal.value;
+    }
+
     executeReaction(event, reaction, user, data) {
         var embed = reaction.message.embeds.pop();
+
+        if (event !== 'remove' && reaction.emoji.name === this.REACTION_NOTIFY.emoji) {
+            var title = embed.title.substring(3);
+            user.send(
+                'Her en file for begivenheden "'+title+'" du kan tilføje til din egen kalender', 
+                new Discord.MessageAttachment(Buffer.from(this.getIcalFile(title, moment(data.time))), 'event.ics'));
+            return;
+        }
 
         var reactionList = [];
         data.roles.forEach((r, i) => {
@@ -205,6 +232,7 @@ class Command extends BaseCommand {
         reactionList.push(this.REACTION_YES);
         reactionList.push(this.REACTION_MAYBE);
         reactionList.push(this.REACTION_NO);
+        reactionList.push(this.REACTION_NOTIFY);
         
         var mr = null;
         var total = 0;
@@ -219,28 +247,31 @@ class Command extends BaseCommand {
         Promise.all(userFetches).then(() => {
             let excludeUsers = null;
             reactionList.forEach((r, i) => {
-                // Make sure the bot is excluded from attendance lists
-                excludeUsers = [this.client.user.id];
-                mr = reaction.message.reactions.cache.find(re => re.emoji.name === r.emoji);
-                if (mr) {
-                    // if this is not a remove event, then check if the user is on another reaction, and the bot should not remove it own reactions
-                    if (event !== 'remove' && mr.emoji.name !== reaction.emoji.name && mr.users.cache.has(user.id) && this.client.user.id != user.id) {
-                        // exclude the user and remove the user async from the reaction
-                        excludeUsers.push(user.id);
-                        mr.users.remove(user.id);
+                // Do not count the notification reaction
+                if (r.emoji !== this.REACTION_NOTIFY.emoji) {
+                    // Make sure the bot is excluded from attendance lists
+                    excludeUsers = [this.client.user.id];
+                    mr = reaction.message.reactions.cache.find(re => re.emoji.name === r.emoji);
+                    if (mr) {
+                        // if this is not a remove event, then check if the user is on another reaction, and the bot should not remove it own reactions
+                        if (event !== 'remove' && mr.emoji.name !== reaction.emoji.name && mr.users.cache.has(user.id) && this.client.user.id != user.id) {
+                            // exclude the user and remove the user async from the reaction
+                            excludeUsers.push(user.id);
+                            mr.users.remove(user.id);
+                        }
+                        // Build a list of users except the 
+                        embed.fields[i].value = mr.users.cache.filter(u => !excludeUsers.includes(u.id)).map(u => '> <@' + u.id + '>').join('\n');
+                        count = mr.users.cache.size-1;
                     }
-                    // Build a list of users except the 
-                    embed.fields[i].value = mr.users.cache.filter(u => !excludeUsers.includes(u.id)).map(u => '> <@' + u.id + '>').join('\n');
-                    count = mr.users.cache.size-1;
+                    if (embed.fields[i].value === '') {
+                        embed.fields[i].value = '-';
+                        count = 0;
+                    }
+                    embed.fields[i].name = `${r.emoji} ${r.name}` + (r.crew ? ` (${count}/${r.crew})` : ` (${count})`);
+                    total += count;
                 }
-                if (embed.fields[i].value === '') {
-                    embed.fields[i].value = '-';
-                    count = 0;
-                }
-                embed.fields[i].name = `${r.emoji} ${r.name}` + (r.crew ? ` (${count}/${r.crew})` : ` (${count})`);
-                total += count;
             });
-            embed.fields[reactionList.length].name = `Der er ${total} bruger(e) som har givet besked`;
+            embed.fields[reactionList.length-1].name = `Der er ${total} bruger(e) som har givet besked`;
             reaction.message.edit(embed)
             .then(async m => {
                 reactionList.forEach(async (r,i) => {
