@@ -16,6 +16,8 @@
     "discord.js": "^12.0.2",
     "dotenv": "^8.2.0",
     "fs": "0.0.1-security",
+    "ics": "^2.19.0",
+    "moment-timezone": "^0.5.28",
     "zlib": "^1.0.5"
   }
 }
