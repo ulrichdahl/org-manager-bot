@@ -271,7 +271,7 @@ class Command extends BaseCommand {
                     total += count;
                 }
             });
-            embed.fields[reactionList.length-1].name = `Der er ${total} bruger(e) som har givet besked`;
+            embed.fields[embed.fields.length-1].name = `Der er ${total} bruger(e) som har givet besked`;
             reaction.message.edit(embed)
             .then(async m => {
                 reactionList.forEach(async (r,i) => {
