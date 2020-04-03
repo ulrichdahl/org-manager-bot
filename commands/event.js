@@ -32,13 +32,13 @@ class Command extends BaseCommand {
         super();
         this.name = 'event';
         this.description = 'Opret en begivenhed med simpel tilbagemelding eller med roller, hvis du ikke angiver parametre så spørger jeg dig om dem.';
-        this.usage = 'event [title] [time]\n'+
-                     '> Opret en simpel event med en titel og tidspunkt. Angiv :time som dato med tid, eller på engelsk som "friday 20:00".\n'+
-                     '> Eksempel: event "Inside Star Citizen" Thursday 21:00\n'+
-                     'event roles [roles] [title] [time]\n'+
-                     '> Opret event med definerede roller. Flere roller kan defineres ved at adskille med komma, antal efter ":", {rolle1:2,rolle2:4}.\n'+
-                     '> Eksempel: event roles Traders:2,Gunners:4,Fighters:3 "Cargo run to Arial" Wednesday 20:00';
-        
+        this.usage = 'event [title] [time]\n' +
+            '> Opret en simpel event med en titel og tidspunkt. Angiv :time som dato med tid, eller på engelsk som "friday 20:00".\n' +
+            '> Eksempel: event "Inside Star Citizen" Thursday 21:00\n' +
+            'event roles [roles] [title] [time]\n' +
+            '> Opret event med definerede roller. Flere roller kan defineres ved at adskille med komma, antal efter ":", {rolle1:2,rolle2:4}.\n' +
+            '> Eksempel: event roles Traders:2,Gunners:4,Fighters:3 "Cargo run to Arial" Wednesday 20:00';
+
         this.conversations = {
             default: {
                 title: {
@@ -117,7 +117,7 @@ class Command extends BaseCommand {
                             if (e.state === 'save') {
                                 this.createEvent(message,
                                     e.data.guild,
-                                    e.data.values.title, 
+                                    e.data.values.title,
                                     new Date(chrono.parseDate(e.data.values.time, moment().tz('Europe/Copenhagen'), { forwardDate: true }))
                                 );
                             }
@@ -139,8 +139,8 @@ class Command extends BaseCommand {
                                     });
                                     this.createEvent(message,
                                         e.data.guild,
-                                        e.data.values.title, 
-                                        moment(chrono.parseDate(e.data.values.time, moment().tz('Europe/Copenhagen'), { forwardDate: true })), 
+                                        e.data.values.title,
+                                        moment(chrono.parseDate(e.data.values.time, moment().tz('Europe/Copenhagen'), { forwardDate: true })),
                                         roles);
                                 }
                             }
@@ -168,10 +168,10 @@ class Command extends BaseCommand {
 
     createEvent(message, guildId, title, time, roles = []) {
         const embed = new Discord.MessageEmbed();
-        embed.setTitle('🗓 '+title);
+        embed.setTitle('🗓 ' + title);
         embed.setDescription('Begivneheden starter ' + time.locale('da').format('LLLL'));
-        roles.forEach((r,i) => {
-            embed.addField(String.fromCharCode(0x0031+i, 0xFE0F, 0x20E3) + ` ${r[0]} (0/${r[1]})`, '-', true);
+        roles.forEach((r, i) => {
+            embed.addField(String.fromCharCode(0x0031 + i, 0xFE0F, 0x20E3) + ` ${r[0]} (0/${r[1]})`, '-', true);
         });
         embed.addField(this.REACTION_YES.emoji + ' ' + this.REACTION_YES.name, '-', true);
         embed.addField(this.REACTION_MAYBE.emoji + ' ' + this.REACTION_MAYBE.name, '-', true);
@@ -185,8 +185,8 @@ class Command extends BaseCommand {
         this.client.guilds.cache.find(g => g.id === guildId)
             .channels.cache.find(c => c.name === 'events').send(embed)
             .then(async m => {
-                roles.forEach(async (r,i) => {
-                    await m.react(String.fromCharCode(0x0031+i, 0xFE0F, 0x20E3));
+                roles.forEach(async (r, i) => {
+                    await m.react(String.fromCharCode(0x0031 + i, 0xFE0F, 0x20E3));
                 });
                 await m.react(this.REACTION_YES.emoji);
                 await m.react(this.REACTION_MAYBE.emoji);
@@ -198,10 +198,10 @@ class Command extends BaseCommand {
 
     getEventStatusField(count) {
         return {
-            name: count === 0 ? 'Der er endnu ingen tilmeldinger' : `Der er ${count} bruger(e) som har givet besked`, 
-            value: 
-                'Giv besked ved at trykke på en reaktion under beskeden\n'+
-                'Tryk på '+this.REACTION_NOTIFY.emoji+' for at få en event file du kan tilføje til din kalender.',
+            name: count === 0 ? 'Der er endnu ingen tilmeldinger' : `Der er ${count} bruger(e) som har givet besked`,
+            value:
+                'Giv besked ved at trykke på en reaktion under beskeden\n' +
+                'Tryk på ' + this.REACTION_NOTIFY.emoji + ' for at få en besked 15 minutter før begivenheden, og en indbydelses file du kan tilføje til din egen kalender.',
             inline: false,
         };
     }
@@ -226,7 +226,7 @@ class Command extends BaseCommand {
         if (event !== 'remove' && reaction.emoji.name === this.REACTION_NOTIFY.emoji) {
             var title = embed.title.substring(3);
             user.send(
-                'Her en file for begivenheden "'+title+'" du kan tilføje til din egen kalender', 
+                'Her en file for begivenheden "' + title + '" du kan tilføje til din egen kalender',
                 new Discord.MessageAttachment(Buffer.from(this.getIcalFile(title, moment(data.time))), 'event.ics'));
             return;
         }
@@ -234,7 +234,7 @@ class Command extends BaseCommand {
         var reactionList = [];
         data.roles.forEach((r, i) => {
             reactionList.push({
-                emoji: String.fromCharCode(0x0031+i, 0xFE0F, 0x20E3),
+                emoji: String.fromCharCode(0x0031 + i, 0xFE0F, 0x20E3),
                 name: r[0],
                 crew: r[1],
             });
@@ -243,7 +243,7 @@ class Command extends BaseCommand {
         reactionList.push(this.REACTION_MAYBE);
         reactionList.push(this.REACTION_NO);
         reactionList.push(this.REACTION_NOTIFY);
-        
+
         var mr = null;
         var total = 0;
         var count = 0;
@@ -271,7 +271,7 @@ class Command extends BaseCommand {
                         }
                         // Build a list of users except the 
                         embed.fields[i].value = mr.users.cache.filter(u => !excludeUsers.includes(u.id)).map(u => '> <@' + u.id + '>').join('\n');
-                        count = mr.users.cache.size-1;
+                        count = mr.users.cache.size - 1;
                     }
                     if (embed.fields[i].value === '') {
                         embed.fields[i].value = '-';
@@ -281,17 +281,54 @@ class Command extends BaseCommand {
                     total += count;
                 }
             });
-            embed.fields[embed.fields.length-1] = this.getEventStatusField(total);
+            embed.fields[embed.fields.length - 1] = this.getEventStatusField(total);
             reaction.message.edit(embed)
-            .then(async m => {
-                reactionList.forEach(async (r,i) => {
-                    if (!m.reactions.cache.has(r.emoji)) {
-                        await m.react(r.emoji);
+                .then(async m => {
+                    reactionList.forEach(async (r, i) => {
+                        if (!m.reactions.cache.has(r.emoji)) {
+                            await m.react(r.emoji);
+                        }
+                    });
+                    console.log('done', event, reaction.emoji.name, user.username);
+                })
+                .catch(e => console.log(e));
+        });
+    }
+
+    everyMinute(guild) {
+        const channel = guild.channels.cache.find(c => c.name === 'events');
+        if (!channel) {
+            return;
+        }
+        console.log('Checking events in guild ' + guild.name);
+        channel.messages.fetch().then(messages => {
+            messages.forEach(message => {
+                if (message.author.id !== this.client.user.id) {
+                    message.delete().then(msg => console.log('Deleted the message from user:', message.author.username));
+                    return;
+                }
+                const data = BaseCommand.decodeFooter(message);
+                if (data) {
+                    const eventTime = moment(data.time);
+                    // console.log('Event time diff in days', eventTime.diff(moment(), 'days'));
+                    // console.log('Event time diff in minutes', eventTime.diff(moment(), 'minutes'));
+                    if (eventTime.diff(moment(), 'days') < 0) {
+                        message.delete().then(msg => console.log('Deleted the message for event of:', data));
                     }
-                });
-                console.log('done', event, reaction.emoji.name, user.username);
-            })
-            .catch(e => console.log(e));
+                    if (eventTime.diff(moment(), 'minutes') === 15) {
+                        const reaction = message.reactions.cache.find(r => r.emoji.name === this.REACTION_NOTIFY.emoji);
+                        if (reaction) {
+                            reaction.users.fetch().then(users => {
+                                users.forEach(u => {
+                                    if (u.id === this.client.user.id) return;   // Do not send notification to my self
+                                    console.log('Less than 15 minutes untill event starts, sending notifications to user', u.username);
+                                    u.send('Der er mindre end 15 minutter til begivenheden "' + message.embeds[0].title.substring(3) + '" begynder på '+guild.name);
+                                })
+                            });
+                        }
+                    }
+                }
+            });
         });
     }
 };

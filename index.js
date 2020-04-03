@@ -5,7 +5,7 @@ global.client = new Discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'
 global.fetch = require('node-fetch');
 global.fs = require('fs');
 global.request = require('./lib/requests');
-
+const moment = require('moment-timezone');
 const Command = require('./lib/command');
 
 // Load commands from files in commands
@@ -112,3 +112,17 @@ client.on('message', (_message) => {
 });
 
 client.login(token);
+
+client.setInterval(() => {
+    if (moment().diff(moment('1', 'H'), 'minutes') === 0) {
+        console.log('House keeping ' + moment().tz('Europe/Copenhagen').locale('da').format('LLLL'));
+        client.sweepMessages(24 * 60 * 60);
+    }
+    client.commands.forEach(cmd => {
+        if (cmd.everyMinute) {
+            client.guilds.cache.forEach(guild => {
+                cmd.everyMinute(guild);
+            });
+        }
+    });
+}, 1 * 60 * 1000);
