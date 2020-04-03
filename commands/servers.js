@@ -7,7 +7,7 @@ class Command extends BaseCommand {
         super();
         this.name = 'servers';
         this.description = 'Show what servers the bot is connected to.';
-        this.onlyGuildId = process.env.GUILD,  // The management guild for handling the bot
+        this.onlyGuildId = process.env.DISCORD_SERVER_ID,  // The management guild for handling the bot
         this.requireRole = 'admin';
     }
 
