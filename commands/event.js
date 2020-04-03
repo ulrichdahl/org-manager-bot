@@ -115,7 +115,7 @@ class Command extends BaseCommand {
                     catch (e) {
                         if (e.state) {
                             if (e.state === 'save') {
-                                var t = moment(chrono.parseDate(e.data.values.time, moment.tz(), { forwardDate: true }));
+                                var t = moment.tz(chrono.parseDate(e.data.values.time, moment.tz('Europe/Copenhagen'), { forwardDate: true }), 'Europe/Copenhagen');
                                 if (!t.isValid()) {
                                     return message.reply('Jeg forstod ikke tidspunket du gav mig');
                                 }
@@ -141,7 +141,7 @@ class Command extends BaseCommand {
                                         var r2 = r.match(/^(.+) (\d)$/);
                                         return [r2[1], r2[2]];
                                     });
-                                    var t = moment(chrono.parseDate(e.data.values.time, moment.tz(), { forwardDate: true }));
+                                    var t = moment.tz(chrono.parseDate(e.data.values.time, moment.tz('Europe/Copenhagen'), { forwardDate: true }), 'Europe/Copenhagen');
                                     if (!t.isValid()) {
                                         return message.reply('Jeg forstod ikke tidspunket du gav mig');
                                     }
@@ -160,7 +160,7 @@ class Command extends BaseCommand {
                         let title = args.shift();   // third is title of the event
                         let time = args.join(' ');  // any following is the time of event
                         roles = roles.split(/,/).map(v => v.split(/:/));
-                        time = moment(chrono.parseDate(time, moment.tz(), { forwardDate: true }));
+                        time = moment.tz(chrono.parseDate(time, moment.tz('Europe/Copenhagen'), { forwardDate: true }), 'Europe/Copenhagen');
                         if (!time.isValid()) {
                             return message.reply('Jeg forstod ikke tidspunket du gav mig');
                         }
@@ -170,7 +170,7 @@ class Command extends BaseCommand {
                 default:
                     let title = args.shift();   // third is title of the event
                     let time = args.join(' ');  // any following is the time of event
-                    time = moment(chrono.parseDate(time, moment.tz(), { forwardDate: true }));
+                    time = moment.tz(chrono.parseDate(time, moment.tz('Europe/Copenhagen'), { forwardDate: true }), 'Europe/Copenhagen');
                     if (!time.isValid()) {
                         return message.reply('Jeg forstod ikke tidspunket du gav mig');
                     }
@@ -183,7 +183,7 @@ class Command extends BaseCommand {
     createEvent(message, guildId, title, time, roles = []) {
         const embed = new Discord.MessageEmbed();
         embed.setTitle('🗓 ' + title);
-        embed.setDescription('Begivneheden starter ' + time.locale('da').format('LLLL z'));
+        embed.setDescription('Begivneheden starter ' + time.tz('Europe/Copenhagen').locale('da').format('LLLL z'));
         roles.forEach((r, i) => {
             embed.addField(String.fromCharCode(0x0031 + i, 0xFE0F, 0x20E3) + ` ${r[0]} (0/${r[1]})`, '-', true);
         });
@@ -191,7 +191,7 @@ class Command extends BaseCommand {
         embed.addField(this.REACTION_MAYBE.emoji + ' ' + this.REACTION_MAYBE.name, '-', true);
         embed.addField(this.REACTION_NO.emoji + ' ' + this.REACTION_NO.name, '-', true);
         embed.fields.push(this.getEventStatusField(0));
-        log('Time of event', time.format('LLLL z'), time.utc().format('LLLL z'))
+        log('Time of event', time.tz('Europe/Copenhagen').format('LLLL z'), time.utc().format('LLLL z'))
         BaseCommand.encodeFooter(embed, {
             command: 'event',
             time: time.utc(),
