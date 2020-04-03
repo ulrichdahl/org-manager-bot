@@ -179,7 +179,7 @@ class Command extends BaseCommand {
         embed.fields.push(this.getEventStatusField(0));
         BaseCommand.encodeFooter(embed, {
             command: 'event',
-            time: time,
+            time: time.utc(),
             roles: roles,
         });
         this.client.guilds.cache.find(g => g.id === guildId)
@@ -193,7 +193,7 @@ class Command extends BaseCommand {
                 await m.react(this.REACTION_NO.emoji);
                 await m.react(this.REACTION_NOTIFY.emoji);
             })
-            .catch(e => console.log(e));
+            .catch(e => log(e));
     }
 
     getEventStatusField(count) {
@@ -289,9 +289,9 @@ class Command extends BaseCommand {
                             await m.react(r.emoji);
                         }
                     });
-                    console.log('done', event, reaction.emoji.name, user.username);
+                    log('done', event, reaction.emoji.name, user.username);
                 })
-                .catch(e => console.log(e));
+                .catch(e => log(e));
         });
     }
 
@@ -303,16 +303,16 @@ class Command extends BaseCommand {
         channel.messages.fetch().then(messages => {
             messages.forEach(message => {
                 if (message.author.id !== this.client.user.id) {
-                    message.delete().then(msg => console.log('Deleted the message from user:', message.author.username));
+                    message.delete().then(msg => log('Deleted the message from user ' + message.author.username));
                     return;
                 }
                 const data = BaseCommand.decodeFooter(message);
                 if (data) {
                     const eventTime = moment(data.time);
-                    // console.log('Event time diff in days', eventTime.diff(moment(), 'days'));
-                    // console.log('Event time diff in minutes', eventTime.diff(moment(), 'minutes'));
+                    // log('Event time diff in days', eventTime.diff(moment(), 'days'));
+                    // log('Event time diff in minutes', eventTime.diff(moment(), 'minutes'));
                     if (eventTime.diff(moment(), 'days') < 0) {
-                        message.delete().then(msg => console.log('Deleted the message for event of:', data));
+                        message.delete().then(msg => log('Deleted the message for event', data));
                     }
                     if (eventTime.diff(moment(), 'minutes') === 15) {
                         const reaction = message.reactions.cache.find(r => r.emoji.name === this.REACTION_NOTIFY.emoji);
@@ -320,7 +320,7 @@ class Command extends BaseCommand {
                             reaction.users.fetch().then(users => {
                                 users.forEach(u => {
                                     if (u.id === this.client.user.id) return;   // Do not send notification to my self
-                                    console.log('Less than 15 minutes untill event starts, sending notifications to user', u.username);
+                                    log('Less than 15 minutes untill event starts, sending notifications to user', u.username);
                                     u.send('Der er mindre end 15 minutter til begivenheden "' + message.embeds[0].title.substring(3) + '" begynder på '+guild.name);
                                 })
                             });

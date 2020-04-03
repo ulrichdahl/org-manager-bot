@@ -11,6 +11,10 @@ const Command = require('./lib/command');
 // Load commands from files in commands
 client.commands = new Discord.Collection();
 
+global.log = function(message, ...args) {
+    console.log('['+moment().tz('Europe/Copenhagen').format('YYYY-MM-DD HH:mm:ss')+']: '+message, args);
+}
+
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
@@ -24,7 +28,7 @@ const servers_guild = process.env.DISCORD_SERVER_ID;
 request.prefix = process.env.FLEET_MANAGER_API_URI;
 
 client.on('ready', () => {
-    console.log('Bot is now connected!\nVersion:', process.env.VERSION);
+    log('Bot is now connected!, Version:', process.env.VERSION);
 });
 
 client.on('messageReactionAdd', Command.handleReactionAdd);
@@ -43,7 +47,7 @@ client.on('message', (_message) => {
                 messages.forEach((m) => {
                     // Was this my message?
                     if (m.author.id === client.user.id) {
-                        console.log('I said: ', m.embeds ? m.embeds[0].title : m.content);
+                        log('I said: ', m.embeds ? m.embeds[0].title : m.content);
                         if (m.embeds.length) {
                             const data = Command.decodeFooter(m);
                             if (data.command) {
@@ -54,9 +58,9 @@ client.on('message', (_message) => {
                         }
                     }
                     else {
-                        console.log('User said:', m.content);
+                        log('User said:', m.content);
                         var args = String(m.content).match(/(?:[^\s"]+|"[^"]*")+/g).map(v => v.match(/(")*(.+)\1/)[2]);
-                        console.log('Args in content', args);
+                        log('Args in content', args);
                         // if this is a direct message, then remove the @user part
                         if (m.channel.type === 'text') {
                             args.shift();
@@ -67,7 +71,7 @@ client.on('message', (_message) => {
                     }
                     if (command) {
                         command.setNameUsed(commandName);
-                        console.log('Found command in message '+i, command.name);
+                        log('Found command in message '+i, command.name);
                         throw [command, args, i > 1 ? m : null];
                     }
                     i++;
@@ -93,7 +97,7 @@ client.on('message', (_message) => {
                         command.guild = success.guild;
                         success = success.message;
                     }
-                    console.log(command.usedName + ': ' + success);
+                    log(command.usedName + ': ' + success);
                     try {
                         command.execute(_message, args, dataMessage);
                     } catch (error) {
@@ -102,7 +106,7 @@ client.on('message', (_message) => {
                     }
                 })
                 .catch((error) => {
-                    console.log('ERROR: ' + command.usedName + ' :: ' + error);
+                    log('ERROR: ' + command.usedName + ' :: ' + error);
                     _message.reply(error);
                 });
         })
@@ -115,7 +119,7 @@ client.login(token);
 
 client.setInterval(() => {
     if (moment().diff(moment('1', 'H'), 'minutes') === 0) {
-        console.log('House keeping ' + moment().tz('Europe/Copenhagen').locale('da').format('LLLL'));
+        log('House keeping ' + moment().tz('Europe/Copenhagen').locale('da').format('LLLL'));
         client.sweepMessages(24 * 60 * 60);
     }
     client.commands.forEach(cmd => {
