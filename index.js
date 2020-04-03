@@ -28,7 +28,7 @@ const servers_guild = process.env.DISCORD_SERVER_ID;
 request.prefix = process.env.FLEET_MANAGER_API_URI;
 
 client.on('ready', () => {
-    log('Bot is now connected!, Version:', process.env.VERSION);
+    log('Bot is now connected!, Version:', process.env.VERSION, moment.tz().locale('da').format('LLLL z'));
 });
 
 client.on('messageReactionAdd', Command.handleReactionAdd);

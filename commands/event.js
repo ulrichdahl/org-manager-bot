@@ -118,7 +118,7 @@ class Command extends BaseCommand {
                                 this.createEvent(message,
                                     e.data.guild,
                                     e.data.values.title,
-                                    new Date(chrono.parseDate(e.data.values.time, moment().tz('Europe/Copenhagen'), { forwardDate: true })).tz('Europe/Copenhagen')
+                                    new Date(chrono.parseDate(e.data.values.time, undefined, { forwardDate: true })).tz('Europe/Copenhagen')
                                 );
                             }
                         }
@@ -140,7 +140,7 @@ class Command extends BaseCommand {
                                     this.createEvent(message,
                                         e.data.guild,
                                         e.data.values.title,
-                                        moment.tz(chrono.parseDate(e.data.values.time, moment().tz('Europe/Copenhagen'), { forwardDate: true }), 'Europe/Copenhagen'),
+                                        moment.tz(chrono.parseDate(e.data.values.time, undefined, { forwardDate: true }), 'Europe/Copenhagen'),
                                         roles);
                                 }
                             }
@@ -152,14 +152,14 @@ class Command extends BaseCommand {
                         let title = args.shift();   // third is title of the event
                         let time = args.join(' ');  // any following is the time of event
                         roles = roles.split(/,/).map(v => v.split(/:/));
-                        time = moment.tz(chrono.parseDate(time, moment().tz('Europe/Copenhagen'), { forwardDate: true }), 'Europe/Copenhagen');
+                        time = moment.tz(chrono.parseDate(time, undefined, { forwardDate: true }), 'Europe/Copenhagen');
                         this.createEvent(message, message.guild.id, title, time, roles);
                     }
                     break;
                 default:
                     let title = args.shift();   // third is title of the event
                     let time = args.join(' ');  // any following is the time of event
-                    time = moment.tz(chrono.parseDate(time, moment().tz('Europe/Copenhagen'), { forwardDate: true }), 'Europe/Copenhagen');
+                    time = moment.tz(chrono.parseDate(time, undefined, { forwardDate: true }), 'Europe/Copenhagen');
                     this.createEvent(message, message.guild.id, title, time);
                     break;
             }
@@ -169,7 +169,7 @@ class Command extends BaseCommand {
     createEvent(message, guildId, title, time, roles = []) {
         const embed = new Discord.MessageEmbed();
         embed.setTitle('🗓 ' + title);
-        embed.setDescription('Begivneheden starter ' + time.locale('da').format('LLLL'));
+        embed.setDescription('Begivneheden starter ' + time.locale('da').format('LLLL z'));
         roles.forEach((r, i) => {
             embed.addField(String.fromCharCode(0x0031 + i, 0xFE0F, 0x20E3) + ` ${r[0]} (0/${r[1]})`, '-', true);
         });
@@ -177,6 +177,7 @@ class Command extends BaseCommand {
         embed.addField(this.REACTION_MAYBE.emoji + ' ' + this.REACTION_MAYBE.name, '-', true);
         embed.addField(this.REACTION_NO.emoji + ' ' + this.REACTION_NO.name, '-', true);
         embed.fields.push(this.getEventStatusField(0));
+        log('Time of event', time.format('LLLL z'), time.utc().format('LLLL z'))
         BaseCommand.encodeFooter(embed, {
             command: 'event',
             time: time.utc(),
@@ -311,11 +312,11 @@ class Command extends BaseCommand {
                     const eventTime = moment.tz(data.time, 'utc');
                     // log('Event time diff in days', eventTime.diff(moment(), 'days'));
                     // log('Event time diff in minutes', eventTime.diff(moment(), 'minutes'));
-                    if (eventTime.diff(moment(), 'days') < 0) {
+                    if (eventTime.diff(moment.tz(), 'days') < 0) {
                         message.delete().then(msg => log('Deleted the message for event', data));
                     }
-                    log('Time diff', eventTime.diff(moment(), 'minutes'), moment().format('LLLL'));
-                    if (eventTime.diff(moment(), 'minutes') === 15) {
+                    log('Time diff', eventTime.diff(moment.tz(), 'minutes'), moment.tz().format('LLLL z'));
+                    if (eventTime.diff(moment.tz(), 'minutes') === 15) {
                         const reaction = message.reactions.cache.find(r => r.emoji.name === this.REACTION_NOTIFY.emoji);
                         if (reaction) {
                             reaction.users.fetch().then(users => {
