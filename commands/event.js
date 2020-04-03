@@ -115,10 +115,14 @@ class Command extends BaseCommand {
                     catch (e) {
                         if (e.state) {
                             if (e.state === 'save') {
+                                var t = moment.tz(chrono.parseDate(e.data.values.time, moment.tz(), { forwardDate: true }), 'Europe/Copenhagen');
+                                if (!t.isValid()) {
+                                    return message.reply('Jeg forstod ikke tidspunket du gav mig');
+                                }
                                 this.createEvent(message,
                                     e.data.guild,
                                     e.data.values.title,
-                                    new Date(chrono.parseDate(e.data.values.time, undefined, { forwardDate: true })).tz('Europe/Copenhagen')
+                                    t
                                 );
                             }
                         }
@@ -137,10 +141,14 @@ class Command extends BaseCommand {
                                         var r2 = r.match(/^(.+) (\d)$/);
                                         return [r2[1], r2[2]];
                                     });
+                                    var t = moment.tz(chrono.parseDate(e.data.values.time, moment.tz(), { forwardDate: true }), 'Europe/Copenhagen');
+                                    if (!t.isValid()) {
+                                        return message.reply('Jeg forstod ikke tidspunket du gav mig');
+                                    }
                                     this.createEvent(message,
                                         e.data.guild,
                                         e.data.values.title,
-                                        moment.tz(chrono.parseDate(e.data.values.time, undefined, { forwardDate: true }), 'Europe/Copenhagen'),
+                                        t,
                                         roles);
                                 }
                             }
@@ -152,14 +160,20 @@ class Command extends BaseCommand {
                         let title = args.shift();   // third is title of the event
                         let time = args.join(' ');  // any following is the time of event
                         roles = roles.split(/,/).map(v => v.split(/:/));
-                        time = moment.tz(chrono.parseDate(time, undefined, { forwardDate: true }), 'Europe/Copenhagen');
+                        time = moment.tz(chrono.parseDate(time, moment.tz(), { forwardDate: true }), 'Europe/Copenhagen');
+                        if (!time.isValid()) {
+                            return message.reply('Jeg forstod ikke tidspunket du gav mig');
+                        }
                         this.createEvent(message, message.guild.id, title, time, roles);
                     }
                     break;
                 default:
                     let title = args.shift();   // third is title of the event
                     let time = args.join(' ');  // any following is the time of event
-                    time = moment.tz(chrono.parseDate(time, undefined, { forwardDate: true }), 'Europe/Copenhagen');
+                    time = moment.tz(chrono.parseDate(time, moment.tz(), { forwardDate: true }), 'Europe/Copenhagen');
+                    if (!time.isValid()) {
+                        return message.reply('Jeg forstod ikke tidspunket du gav mig');
+                    }
                     this.createEvent(message, message.guild.id, title, time);
                     break;
             }
@@ -323,7 +337,7 @@ class Command extends BaseCommand {
                                 users.forEach(u => {
                                     if (u.id === this.client.user.id) return;   // Do not send notification to my self
                                     log('Less than 15 minutes untill event starts, sending notifications to user', u.username);
-                                    u.send('Der er mindre end 15 minutter til begivenheden "' + message.embeds[0].title.substring(3) + '" begynder på '+guild.name);
+                                    u.send('Der er mindre end 15 minutter til begivenheden "' + message.embeds[0].title.substring(3) + '" begynder på ' + guild.name);
                                 })
                             });
                         }
