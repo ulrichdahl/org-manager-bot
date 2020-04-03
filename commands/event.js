@@ -115,7 +115,7 @@ class Command extends BaseCommand {
                     catch (e) {
                         if (e.state) {
                             if (e.state === 'save') {
-                                var t = moment.tz(chrono.parseDate(e.data.values.time, moment.tz(), { forwardDate: true }), 'Europe/Copenhagen');
+                                var t = moment(chrono.parseDate(e.data.values.time, moment.tz(), { forwardDate: true }));
                                 if (!t.isValid()) {
                                     return message.reply('Jeg forstod ikke tidspunket du gav mig');
                                 }
@@ -141,7 +141,7 @@ class Command extends BaseCommand {
                                         var r2 = r.match(/^(.+) (\d)$/);
                                         return [r2[1], r2[2]];
                                     });
-                                    var t = moment.tz(chrono.parseDate(e.data.values.time, moment.tz(), { forwardDate: true }), 'Europe/Copenhagen');
+                                    var t = moment(chrono.parseDate(e.data.values.time, moment.tz(), { forwardDate: true }));
                                     if (!t.isValid()) {
                                         return message.reply('Jeg forstod ikke tidspunket du gav mig');
                                     }
@@ -160,7 +160,7 @@ class Command extends BaseCommand {
                         let title = args.shift();   // third is title of the event
                         let time = args.join(' ');  // any following is the time of event
                         roles = roles.split(/,/).map(v => v.split(/:/));
-                        time = moment.tz(chrono.parseDate(time, moment.tz(), { forwardDate: true }), 'Europe/Copenhagen');
+                        time = moment(chrono.parseDate(time, moment.tz(), { forwardDate: true }));
                         if (!time.isValid()) {
                             return message.reply('Jeg forstod ikke tidspunket du gav mig');
                         }
@@ -170,7 +170,7 @@ class Command extends BaseCommand {
                 default:
                     let title = args.shift();   // third is title of the event
                     let time = args.join(' ');  // any following is the time of event
-                    time = moment.tz(chrono.parseDate(time, moment.tz(), { forwardDate: true }), 'Europe/Copenhagen');
+                    time = moment(chrono.parseDate(time, moment.tz(), { forwardDate: true }));
                     if (!time.isValid()) {
                         return message.reply('Jeg forstod ikke tidspunket du gav mig');
                     }
