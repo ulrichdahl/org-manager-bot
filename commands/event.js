@@ -115,14 +115,10 @@ class Command extends BaseCommand {
                     catch (e) {
                         if (e.state) {
                             if (e.state === 'save') {
-                                var t = moment.tz(chrono.parseDate(e.data.values.time, moment.tz('Europe/Copenhagen'), { forwardDate: true }), 'Europe/Copenhagen');
-                                if (!t.isValid()) {
-                                    return message.reply('Jeg forstod ikke tidspunket du gav mig');
-                                }
                                 this.createEvent(message,
                                     e.data.guild,
                                     e.data.values.title,
-                                    t
+                                    parseTimeString(e.data.values.time)
                                 );
                             }
                         }
@@ -141,14 +137,10 @@ class Command extends BaseCommand {
                                         var r2 = r.match(/^(.+) (\d)$/);
                                         return [r2[1], r2[2]];
                                     });
-                                    var t = moment.tz(chrono.parseDate(e.data.values.time, moment.tz('Europe/Copenhagen'), { forwardDate: true }), 'Europe/Copenhagen');
-                                    if (!t.isValid()) {
-                                        return message.reply('Jeg forstod ikke tidspunket du gav mig');
-                                    }
                                     this.createEvent(message,
                                         e.data.guild,
                                         e.data.values.title,
-                                        t,
+                                        parseTimeString(e.data.values.time),
                                         roles);
                                 }
                             }
@@ -160,21 +152,13 @@ class Command extends BaseCommand {
                         let title = args.shift();   // third is title of the event
                         let time = args.join(' ');  // any following is the time of event
                         roles = roles.split(/,/).map(v => v.split(/:/));
-                        time = moment.tz(chrono.parseDate(time, moment.tz('Europe/Copenhagen'), { forwardDate: true }), 'Europe/Copenhagen');
-                        if (!time.isValid()) {
-                            return message.reply('Jeg forstod ikke tidspunket du gav mig');
-                        }
-                        this.createEvent(message, message.guild.id, title, time, roles);
+                        this.createEvent(message, message.guild.id, title, parseTimeString(time), roles);
                     }
                     break;
                 default:
                     let title = args.shift();   // third is title of the event
                     let time = args.join(' ');  // any following is the time of event
-                    time = moment.tz(chrono.parseDate(time, moment.tz('Europe/Copenhagen'), { forwardDate: true }), 'Europe/Copenhagen');
-                    if (!time.isValid()) {
-                        return message.reply('Jeg forstod ikke tidspunket du gav mig');
-                    }
-                    this.createEvent(message, message.guild.id, title, time);
+                    this.createEvent(message, message.guild.id, title, parseTimeString(time));
                     break;
             }
         }
@@ -183,7 +167,7 @@ class Command extends BaseCommand {
     createEvent(message, guildId, title, time, roles = []) {
         const embed = new Discord.MessageEmbed();
         embed.setTitle('🗓 ' + title);
-        embed.setDescription('Begivneheden starter ' + time.tz('Europe/Copenhagen').locale('da').format('LLLL z'));
+        embed.setDescription('Begivneheden starter ' + time.tz('Europe/Copenhagen').locale('da').format('LLLL'));
         roles.forEach((r, i) => {
             embed.addField(String.fromCharCode(0x0031 + i, 0xFE0F, 0x20E3) + ` ${r[0]} (0/${r[1]})`, '-', true);
         });
@@ -318,29 +302,35 @@ class Command extends BaseCommand {
         channel.messages.fetch().then(messages => {
             messages.forEach(message => {
                 if (message.author.id !== this.client.user.id && !message.pinned && moment().diff(message.createdAt, 'minutes') > 1) {
-                    message.delete().then(msg => log('Deleted the message from user ' + message.author.username));
+                    message.delete().then(msg => log('Deleted the message from user ' + message.author.username, message.content));
                     return;
                 }
-                const data = BaseCommand.decodeFooter(message);
-                if (data) {
-                    const eventTime = moment.tz(data.time, 'utc');
-                    // log('Event time diff in days', eventTime.diff(moment(), 'days'));
-                    // log('Event time diff in minutes', eventTime.diff(moment(), 'minutes'));
-                    if (eventTime.diff(moment.tz(), 'days') < 0) {
-                        message.delete().then(msg => log('Deleted the message for event', data));
-                    }
-                    log('Time diff', eventTime.diff(moment.tz(), 'minutes'), moment.tz().format('LLLL z'));
-                    if (eventTime.diff(moment.tz(), 'minutes') === 15) {
-                        const reaction = message.reactions.cache.find(r => r.emoji.name === this.REACTION_NOTIFY.emoji);
-                        if (reaction) {
-                            reaction.users.fetch().then(users => {
-                                users.forEach(u => {
-                                    if (u.id === this.client.user.id) return;   // Do not send notification to my self
-                                    log('Less than 15 minutes untill event starts, sending notifications to user', u.username);
-                                    u.send('Der er mindre end 15 minutter til begivenheden "' + message.embeds[0].title.substring(3) + '" begynder på ' + guild.name);
-                                })
-                            });
+                if (message.author.id === this.client.user.id) {
+                    const data = BaseCommand.decodeFooter(message);
+                    if (data) {
+                        const eventTime = moment.tz(data.time, 'utc');
+                        // log('Event time diff in days', eventTime.diff(moment(), 'days'));
+                        // log('Event time diff in minutes', eventTime.diff(moment(), 'minutes'));
+                        if (eventTime.diff(moment.tz(), 'days') < 0) {
+                            message.delete().then(msg => log('Deleted the message for event', data));
                         }
+                        // log('Time diff', eventTime.diff(moment.tz(), 'minutes'), moment.tz().format('LLLL z'));
+                        if (eventTime.diff(moment.tz(), 'minutes') === 15) {
+                            const reaction = message.reactions.cache.find(r => r.emoji.name === this.REACTION_NOTIFY.emoji);
+                            if (reaction) {
+                                reaction.users.fetch().then(users => {
+                                    users.forEach(u => {
+                                        if (u.id === this.client.user.id) return;   // Do not send notification to my self
+                                        log('Less than 15 minutes untill event starts, sending notifications to user', u.username);
+                                        u.send('Der er mindre end 15 minutter til begivenheden "' + message.embeds[0].title.substring(3) + '" begynder på ' + guild.name);
+                                    })
+                                });
+                            }
+                        }
+                    }
+                    else if (moment().diff(message.createdAt, 'minutes') > 1) {
+                        message.delete().then(msg => log('Deleted my own message ' + message.content));
+                        return;
                     }
                 }
             });

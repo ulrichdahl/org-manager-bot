@@ -5,15 +5,39 @@ global.client = new Discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'
 global.fetch = require('node-fetch');
 global.fs = require('fs');
 global.request = require('./lib/requests');
+const chrono = require('chrono-node');
 const moment = require('moment-timezone');
 const Command = require('./lib/command');
 
 // Load commands from files in commands
 client.commands = new Discord.Collection();
 
+
 global.log = function(message, ...args) {
     console.log('['+moment().tz('Europe/Copenhagen').format('YYYY-MM-DD HH:mm:ss')+']: '+message, args);
 }
+
+global.parseTimeString = function(string) { 
+    var time = moment.tz('CET').utc().format('HH:mm');
+    // console.log('UTC time now', time);
+    time = chrono.parseDate(time, new Date(), { forwardDate: true });
+    // console.log('Chrono parsed time now', time);
+    var timeDiff = moment.tz('CET').diff(time, 'minutes');
+    // console.log('Chrono diff to UTC', timeDiff);
+    time.setMinutes(time.getMinutes() + timeDiff);
+    // console.log('Corrected UTC time', time);
+
+    time = chrono.parseDate(string, new Date(), { forwardDate: true });
+    if (!time) {
+        throw 'Jeg forstod ikke tidspunket du gav mig, prøv igen.';
+    }
+    // console.log('Chrono parsed time of: ' + string, time);
+    time.setMinutes(time.getMinutes() + timeDiff - moment.tz('CET').utcOffset());
+    // console.log('Corrected chrono time', time);
+    time = moment.tz(time, 'UTC');
+    return time;
+}
+
 
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
@@ -101,16 +125,16 @@ client.on('message', (_message) => {
                     try {
                         command.execute(_message, args, dataMessage);
                     } catch (error) {
-                        console.error(error);
-                        throw 'there was an error trying to execute that command!';
+                        throw error;
                     }
                 })
                 .catch((error) => {
-                    log('ERROR: ' + command.usedName + ' :: ' + error);
+                    log('Execution ERROR: ' + command.usedName + ' :: ' + error);
                     _message.reply(error);
                 });
         })
         .catch(e => {
+            log('Validation ERROR: ' + command.usedName + ' :: ' + error);
             _message.reply(e);
         });
 });
