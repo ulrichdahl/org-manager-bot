@@ -302,7 +302,7 @@ class Command extends BaseCommand {
         }
         channel.messages.fetch().then(messages => {
             messages.forEach(message => {
-                if (message.author.id !== this.client.user.id && !message.pinned && moment().diff(message.createdAt, 'minutes') > 5) {
+                if (message.author.id !== this.client.user.id && !message.pinned && moment().diff(message.createdAt, 'minutes') > 1) {
                     message.delete().then(msg => log('Deleted the message from user ' + message.author.username));
                     return;
                 }
@@ -311,10 +311,11 @@ class Command extends BaseCommand {
                     const eventTime = moment(data.time);
                     // log('Event time diff in days', eventTime.diff(moment(), 'days'));
                     // log('Event time diff in minutes', eventTime.diff(moment(), 'minutes'));
-                    if (eventTime.diff(moment(), 'days') < 0) {
+                    if (eventTime.diff(moment().tz('Europe/Copenhagen'), 'days') < 0) {
                         message.delete().then(msg => log('Deleted the message for event', data));
                     }
-                    if (eventTime.diff(moment(), 'minutes') === 15) {
+                    log('Time diff', eventTime.diff(moment().tz('Europe/Copenhagen'), 'minutes'), moment());
+                    if (eventTime.diff(moment().tz('Europe/Copenhagen'), 'minutes') === 15) {
                         const reaction = message.reactions.cache.find(r => r.emoji.name === this.REACTION_NOTIFY.emoji);
                         if (reaction) {
                             reaction.users.fetch().then(users => {
