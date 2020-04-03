@@ -300,7 +300,6 @@ class Command extends BaseCommand {
         if (!channel) {
             return;
         }
-        console.log('Checking events in guild ' + guild.name);
         channel.messages.fetch().then(messages => {
             messages.forEach(message => {
                 if (message.author.id !== this.client.user.id) {
