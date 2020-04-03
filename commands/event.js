@@ -302,7 +302,7 @@ class Command extends BaseCommand {
         }
         channel.messages.fetch().then(messages => {
             messages.forEach(message => {
-                if (message.author.id !== this.client.user.id) {
+                if (message.author.id !== this.client.user.id && !message.pinned && moment().diff(message.createdAt, 'minutes') > 5) {
                     message.delete().then(msg => log('Deleted the message from user ' + message.author.username));
                     return;
                 }
