@@ -308,13 +308,13 @@ class Command extends BaseCommand {
                 }
                 const data = BaseCommand.decodeFooter(message);
                 if (data) {
-                    const eventTime = moment(data.time);
+                    const eventTime = moment(data.time).tz('Europe/Copenhagen');
                     // log('Event time diff in days', eventTime.diff(moment(), 'days'));
                     // log('Event time diff in minutes', eventTime.diff(moment(), 'minutes'));
                     if (eventTime.diff(moment().tz('Europe/Copenhagen'), 'days') < 0) {
                         message.delete().then(msg => log('Deleted the message for event', data));
                     }
-                    log('Time diff', eventTime.diff(moment().tz('Europe/Copenhagen'), 'minutes'), moment());
+                    log('Time diff', eventTime.diff(moment().tz('Europe/Copenhagen'), 'minutes'), moment().tz('Europe/Copenhagen'));
                     if (eventTime.diff(moment().tz('Europe/Copenhagen'), 'minutes') === 15) {
                         const reaction = message.reactions.cache.find(r => r.emoji.name === this.REACTION_NOTIFY.emoji);
                         if (reaction) {
