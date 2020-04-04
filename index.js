@@ -52,7 +52,7 @@ const servers_guild = process.env.DISCORD_SERVER_ID;
 request.prefix = process.env.FLEET_MANAGER_API_URI;
 
 client.on('ready', () => {
-    log('Bot is now connected!, Version:', process.env.VERSION, moment.tz().locale('da').format('LLLL z'));
+    log('Bot is now connected!', process.env.VERSION);
 });
 
 client.on('messageReactionAdd', Command.handleReactionAdd);
@@ -142,9 +142,15 @@ client.on('message', (_message) => {
 client.login(token);
 
 client.setInterval(() => {
-    if (moment().diff(moment('1', 'H'), 'minutes') === 0) {
-        log('House keeping ' + moment().tz('Europe/Copenhagen').locale('da').format('LLLL'));
-        client.sweepMessages(24 * 60 * 60);
+    if (moment().isSame(moment('15:09', 'HH:mm'), 'minute')) {
+        var description = 'Current memory usage: ';
+        var usedMem = process.memoryUsage();
+        for (let key in usedMem) {
+            description += `${key} ${Math.round(usedMem[key] / 1024 / 1024 * 100) / 100} MB, `;
+        }
+        log(description.substr(0, description.length - 2));
+        log('House keeping sweeping messages of the cache');
+        client.sweepMessages();
     }
     client.commands.forEach(cmd => {
         if (cmd.everyMinute) {
